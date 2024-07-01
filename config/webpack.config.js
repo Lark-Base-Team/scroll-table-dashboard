@@ -571,7 +571,9 @@ module.exports = function (webpackEnv) {
       }),
       new HtmlWebpackPlugin(
         Object.assign(
-          {},
+          {
+            publicPath: './'
+          },
           {
             inject: true,
             template: paths.appHtml,
