@@ -2,6 +2,7 @@
   "name": "scroll-table",
   "version": "0.1.0",
   "private": true,
+  "output": "dist",
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@douyinfe/semi-foundation": "^2.59.1",
