@@ -1,0 +1,29 @@
+/* styles/globals.css */
+@import "~@douyinfe/semi-ui/dist/css/semi.min.css";
+
+@import "~@semi-bot/semi-theme-feishu-dashboard/semi.min.css";
+
+/* 中英文环境 */
+html {
+  font-family: -apple-system, BlinkMacSystemFont, Helvetica Neue, Tahoma,
+    PingFang SC, Microsoft Yahei, Arial, Hiragino Sans GB, sans-serif,
+    Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
+}
+
+.semi-form-field {
+  padding-bottom: 0;
+}

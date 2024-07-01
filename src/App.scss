@@ -1,0 +1,222 @@
+body {
+  color: var(--semi-color-text-0);
+  background-color: var( --semi-color-bg-0);
+}
+
+/* 总体 */
+#app-box {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-top: 1px solid var(--semi-color-border);
+  box-sizing: border-box;
+}
+
+/* 隐藏滚动条 */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* 渲染区 */
+#scroll-table-container {
+  flex: 1;
+  display: flex;
+  flex-flow: column;
+  #scroll-table-header {
+    .semi-table-body {
+      display: none;
+      //overflow: hidden !important;
+    }
+  }
+
+  .scroll-panel {
+    overflow: auto;
+    flex: 1;
+    #scroll-table-body, #scroll-table-body-copy {
+      .semi-table-header {
+        height: 0;
+      }
+    }
+  }
+}
+
+/* 配置区 */
+.right-box {
+  display: flex;
+  flex-direction: column;
+  width: 340px;
+  height: 100vh;
+  padding: 8px 20px 0px 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  border-left: 1px solid var(--semi-color-border);
+  box-sizing: border-box;
+}
+.semi-form-field-label-text {
+  font-weight: 400;
+}
+
+input[type='color'] {
+  background: transparent;
+}
+.add-line-select {
+  width: calc(100% + 10px) !important;
+}
+
+.semi-select {
+  width: 100%;
+  border: 1px solid rgba(var(--semi-grey-2), 1);
+}
+
+.field-item {
+  display: flex;
+  height: 30px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 14px;
+  margin-bottom: 10px;
+  column-gap: 10px;
+}
+.field-item svg {
+  font-size: 14px;
+  color: rgba(var(--semi-grey-5), 1);
+}
+.field-item-title {
+  overflow: hidden;
+  width: 100%;
+  border: 1px solid rgba(var(--semi-grey-2), 1);
+  box-sizing: border-box;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 7px;
+  border-radius: 5px;
+}
+.field-item-title svg {
+  margin-right: 5px;
+}
+.field-item-phone {
+  width: 120px;
+  font-size: 12px;
+  border: 1px solid rgba(var(--semi-grey-2), 1);
+  box-sizing: border-box;
+  justify-content: center;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  border-radius: 5px;
+  color: rgba(var(--semi-grey-5), 1);
+  cursor: pointer;
+}
+.field-item-phone svg {
+  margin-right: 5px;
+}
+.field-item-delete {
+  width: 20px;
+  text-align: right !important;
+  cursor: pointer;
+}
+.field-item-add-btn {
+  padding-left: 0 !important;
+  margin: 5px 0;
+}
+.field-item-add-btn .semi-button-content {
+  display: flex;
+  align-items: center;
+  color: var(--semi-color-primary);
+}
+.field-item-add-btn .semi-button-content svg {
+  margin-right: 3px;
+}
+.form-second-box {
+  display: flex;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: rgba(var(--semi-grey-1), .5);
+  border-radius: 5px;
+}
+.form-second-box-item {
+  row-gap: 20px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+.form-second-box {
+  font-weight: 400;
+  color: rgba(var(--semi-grey-5), 1);
+}
+.form-second-box-item-2 {
+  margin-left: 20px;
+}
+.switch-header {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding-right: 25px;
+  margin-bottom: 10px;
+}
+.line-height-card-box {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  border: 1px solid rgba(var(--semi-grey-2), 1);
+  height: 30px;
+  align-items: center;
+  border-radius: 5px;
+  box-sizing: border-box;
+}
+.line-height-card {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  cursor: pointer;
+}
+.line-height-card-active span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  width: calc(100% - 14px);
+  margin-left: 7px;
+  background-color: rgba(var(--semi-blue-5), .1);
+  border-radius: 4px;
+  color: rgba(var(--semi-blue-5), 1);
+}
+.line-height-color-box {
+  display: flex;
+  justify-content: space-between;
+}
+.line-height-color-item {
+  border: 1px solid rgba(var(--semi-grey-2), 1);
+  border-radius: 5px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  flex: 1;
+  height: 30px;
+  justify-content: space-between;
+  box-sizing: border-box;
+  padding: 0 10px;
+}
+.line-height-color-item:first-child {
+  margin-right: 15px;
+}
+.line-height-color-item input {
+  border: none;
+  width: 30px;
+  cursor: pointer;
+}
+.line-height-color-item label {
+  flex: 1;
+  cursor: pointer;
+}
+.submit-panel {
+  display: flex;
+  height: 70px;
+  width: 100%;
+  justify-content: end;
+  padding-right: 16px;
+  padding-top: 10px;
+}
