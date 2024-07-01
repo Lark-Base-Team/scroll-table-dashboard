@@ -24,7 +24,7 @@ function App() {
   useEffect(() => {
     getConfig().then(async (config) => {
       getTheme()
-      getDataSource().then((res) => {
+      getDataSource(config).then((res) => {
         setDataSource(res)
         setAllFields(config ? config.all_fields : deepConfig.all_fields)
       });
@@ -37,7 +37,7 @@ function App() {
     if (dashboard.state === 'View' || dashboard.state === 'FullScreen') {
       dashboard.onDataChange((e) => {
         getConfig().then(async (config) => {
-          getDataSource().then((res) => {
+          getDataSource(config).then((res) => {
             setDataSource(res)
             setAllFields(config ? config.all_fields : deepConfig.all_fields)
           });

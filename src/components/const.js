@@ -8,12 +8,14 @@ let first_range_id = "";
 const state = dashboard.state
 export const commonInfo = {};
 // 获取数据源
-export function getDataSource() {
+export function getDataSource(fetchedConfig = null) {
   return new Promise(async (resolve, reject) => {
     try {
       const { deepConfig, setDeepConfig, formRef } = commonInfo;
       const tableList = await bitable.base.getTableMetaList();
-      deepConfig.data_sorce = deepConfig.data_sorce || tableList?.[0]?.id;
+      deepConfig.data_sorce = fetchedConfig
+        ? fetchedConfig.data_sorce
+        : deepConfig.data_sorce || tableList?.[0]?.id;
       if (state === 'Config' || state === 'Create') {
         setDeepConfig(deepConfig);
         formRef.current.formApi.setValue("data_sorce", deepConfig.data_sorce);
