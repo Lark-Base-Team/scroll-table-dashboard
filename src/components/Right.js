@@ -211,7 +211,7 @@ const App = forwardRef((props, ref) => {
 
     dashboard.saveConfig({
       dataConditions,
-      customConfig: cloneDeep(deepConfig)
+      customConfig: deepConfig
     })
   }
 

@@ -2,6 +2,7 @@ import { bitable, dashboard } from "@lark-base-open/js-sdk";
 import { Toast } from "@douyinfe/semi-ui";
 import { line_computed, scroll_computed } from '../utils/computed'
 import app from "../App";
+import {cloneDeep} from "@douyinfe/semi-ui/lib/es/_utils";
 
 let first_range_id = "";
 const state = dashboard.state
@@ -162,7 +163,7 @@ export async function getAllFields(value) {
     }
     const { data_sorce, data_range } = deepConfig;
     if (!data_sorce || !data_range) return;
-    if (state === 'Create' ) {
+    if (state === 'Create' || state === 'Config') {
       const table = await bitable.base.getTable(data_sorce);
       const view = await table.getViewById(first_range_id);
       deepConfig.all_fields = await view.getFieldMetaList();
@@ -170,7 +171,13 @@ export async function getAllFields(value) {
       const len = deepConfig.all_fields.length <= 5 ? deepConfig.all_fields.length : 5
       for (let i = 0; i < len; i++) {
         const item = deepConfig.all_fields?.[i];
-        if (item) addField(item.id);
+        if (item) {
+          try {
+            addField(item.id);
+          } catch (e) {
+            console.log('err:', e);
+          }
+        }
       }
     }
     if (state === 'Config' || state === 'Create') {
@@ -186,11 +193,15 @@ export async function getAllFields(value) {
 export function addField(id) {
   const { deepConfig, setDeepConfig } = commonInfo;
   const { all_fields, show_fields } = deepConfig;
-  show_fields.push(
+  const temp = cloneDeep(show_fields)
+  temp.push(
     JSON.parse(JSON.stringify(all_fields.find((item) => item.id === id)))
   );
+  // deepConfig.show_fields = cloneDeep(temp)
   if (state === 'Config' || state === 'Create') {
-    setDeepConfig(deepConfig);
+    setDeepConfig(Object.assign(deepConfig, {
+      show_fields: temp
+    }));
   }
   // initColumns();
 }

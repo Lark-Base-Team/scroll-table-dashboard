@@ -60,11 +60,15 @@ const Cell = (props) => {
       case 1: // 多行文本  string
       case 99001: // 二维码  string
       case 99005: // 邮箱  string
-        return setRenderText(text)
+        return setRenderText(text || '')
       case 2: // 数字  string
-        const numberField = await tableComponent.getField(col.id)
-        const numberFormatter = await numberField.getFormatter()
-        return text && setRenderText(numbField(numberFormatter, text))
+        try {
+          const numberField = await tableComponent.getField(col.id)
+          const numberFormatter = await numberField.getFormatter()
+          return text && setRenderText(numbField(numberFormatter, text))
+        } catch (e) {
+          return setRenderText('')
+        }
       case 3: // 单选  tag
         return text && setRenderText(
           (
@@ -76,9 +80,13 @@ const Cell = (props) => {
       case 5: // 日期  date
       case 1001: // 创建时间  date
       case 1002: // 修改时间  date
-        const dateField = await tableComponent.getField(col.id)
-        const dateFormatter = await dateField.getDateFormat()
-        return setRenderText(moment(text).format(dateFormatter.replaceAll('d', 'D')))
+        try {
+          const dateField = await tableComponent.getField(col.id)
+          const dateFormatter = await dateField.getDateFormat()
+          return setRenderText(moment(text).format(dateFormatter.replaceAll('d', 'D')))
+        } catch (e) {
+          return setRenderText('')
+        }
       case 7: // 复选框  checkbox
         return setRenderText(
           (
@@ -121,11 +129,14 @@ const Cell = (props) => {
           return setRenderText('')
         }
       case 19: // 查找引用
-        const lookupFieldId = col.property.refFieldId
-        const lookupField = await tableComponent.getField(lookupFieldId)
-        const type = await lookupField.getType()
-        return getElementByType(col, text, type)
-        // return setRenderText('')
+        try {
+          const lookupFieldId = col.property.refFieldId
+          const lookupField = await tableComponent.getField(lookupFieldId)
+          const type = await lookupField.getType()
+          return getElementByType(col, text, type)
+        } catch (e) {
+          return setRenderText('')
+        }
       case 20: // 公式
         return setRenderText(text)
       case 21: // 双向关联
@@ -147,16 +158,24 @@ const Cell = (props) => {
       case 1005: // 自动编号  string
         return text && setRenderText(text.value)
       case 99002: // 进度条  string
-        const progressField = await tableComponent.getField(col.id)
-        const value = await progressField.getValue(row.recordId)
-        return text && setRenderText((
-          <Progress percent={text*100} showInfo={true} />
-        ))
+        try {
+          const progressField = await tableComponent.getField(col.id)
+          const value = await progressField.getValue(row.recordId)
+          return text && setRenderText((
+            <Progress percent={text*100} showInfo={true} />
+          ))
+        } catch (e) {
+          return setRenderText('')
+        }
       case 99003: // 货币  string<货币>
-        const currencyField = await tableComponent.getField(col.id);
-        const currencyFormat = await currencyField.getCurrencyCode()
-        const digits = await currencyField.getDecimalDigits()
-        return text && setRenderText(`${currency[currencyFormat]}${text.toFixed(digits)}`)
+        try {
+          const currencyField = await tableComponent.getField(col.id);
+          const currencyFormat = await currencyField.getCurrencyCode()
+          const digits = await currencyField.getDecimalDigits()
+          return text && setRenderText(`${currency[currencyFormat]}${text.toFixed(digits)}`)
+        } catch (e) {
+          return setRenderText('')
+        }
       case 99004: // 评分  rate
         return text && setRenderText((
           <Rating
