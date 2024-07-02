@@ -50,6 +50,10 @@ function App() {
     }
   }, []);
 
+  useEffect(() => {
+    setAllFields(deepConfig.all_fields)
+  }, [deepConfig]);
+
   const getTheme = async () => {
     const theme = await bitable.bridge.getTheme();
     setTheme(theme)
