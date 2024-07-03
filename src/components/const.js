@@ -165,7 +165,7 @@ export async function getAllFields(value, firstLoadFlag = false) {
     }
     const { data_sorce, data_range } = deepConfig;
     if (!data_sorce || !data_range) return;
-    if ((state === 'Create' || state === 'Config') && !firstLoadFlag) {
+    if (state === 'Create' || (state === 'Config' && !firstLoadFlag)) {
       const table = await bitable.base.getTable(data_sorce);
       const view = await table.getViewById(first_range_id);
       const tempField = await view.getFieldMetaList();
