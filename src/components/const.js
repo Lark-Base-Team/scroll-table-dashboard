@@ -20,7 +20,7 @@ export function getDataSource(fetchedConfig = null) {
         setDeepConfig(deepConfig);
         formRef.current.formApi.setValue("data_sorce", deepConfig.data_sorce);
       }
-      await changeSource(deepConfig.data_sorce);
+      await changeSource(deepConfig.data_sorce, true);
       resolve(tableList);
     } catch (err) {
       Toast.error("获取数据源失败");
@@ -128,7 +128,7 @@ export function getSize(appHeight, rowLength = 1) {
 }
 
 // 数据源改变，获取数据范围
-export async function changeSource(value) {
+export async function changeSource(value, firstLoadFlag = false) {
   return new Promise(async (resolve, reject) => {
     const { deepConfig, setDeepConfig, formRef, setDataRange } = commonInfo;
     deepConfig.data_sorce = value;
@@ -145,7 +145,7 @@ export async function changeSource(value) {
       if (state === 'Config' || state === 'Create') {
         setDataRange(tables);
       }
-      await getAllFields("all", setDeepConfig);
+      await getAllFields("all", firstLoadFlag);
       resolve()
     } catch (err) {
       Toast.error("获取数据范围失败");
@@ -156,7 +156,7 @@ export async function changeSource(value) {
 }
 
 // 重新拉取所有字段
-export async function getAllFields(value) {
+export async function getAllFields(value, firstLoadFlag = false) {
   return new Promise(async (resolve, reject) => {
     const { deepConfig, setDeepConfig } = commonInfo;
     deepConfig.data_range = value;
@@ -165,7 +165,7 @@ export async function getAllFields(value) {
     }
     const { data_sorce, data_range } = deepConfig;
     if (!data_sorce || !data_range) return;
-    if (state === 'Create' || state === 'Config') {
+    if ((state === 'Create' || state === 'Config') && !firstLoadFlag) {
       const table = await bitable.base.getTable(data_sorce);
       const view = await table.getViewById(first_range_id);
       const tempField = await view.getFieldMetaList();
