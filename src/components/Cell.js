@@ -70,7 +70,7 @@ const Cell = (props) => {
           return setRenderText('')
         }
       case 3: // 单选  tag
-        return text && setRenderText(
+        return text && typeof text === 'string' && setRenderText(
           (
             <Tag size="small" shape="circle" color="green">{text}</Tag>
           )
