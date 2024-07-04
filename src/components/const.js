@@ -174,8 +174,9 @@ export async function getAllFields(value, firstLoadFlag = false) {
           id: d.id,
           name: d.name,
           type: d.type,
-          property: d.type === 19 ? {
-            refFieldId: d.property.refFieldId
+          property: [2, 19].includes(d.type) ? {
+            refFieldId: d.property.refFieldId,
+            refTableId: d.property.refTableId
           } : null
         }
       })

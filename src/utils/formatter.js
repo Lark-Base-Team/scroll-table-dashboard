@@ -4,13 +4,14 @@
  * @param {number} value sdk返回数字原始值
  */
 export const numbField = (format, value) => {
+  const number = Number(value)
   switch (format) {
     case '#,##0':
-      return value.toLocaleString()
+      return number.toLocaleString()
     case '#,##0.00':
-      return Number(value.toFixed(2)).toLocaleString()
+      return Number(number.toFixed(2)).toLocaleString()
     case '0':
-      return value.toFixed()
+      return number.toFixed()
     case '0.0':
     case '0.00':
     case '0.000':
@@ -21,11 +22,11 @@ export const numbField = (format, value) => {
     case '0.00000000':
     case '0.000000000':
       const len = format.split('.')[1].length
-      return value.toFixed(len)
+      return number.toFixed(len)
     case '0%':
-      return `${(value * 100).toFixed()}%`
+      return `${(number * 100).toFixed()}%`
     case '0.00%':
-      return `${(value * 100).toFixed(2)}%`
+      return `${(number * 100).toFixed(2)}%`
   }
 }
 

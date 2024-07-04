@@ -12,6 +12,7 @@ import {
 } from "@douyinfe/semi-ui"
 import moment from "moment";
 import "../style/cell.scss"
+import {bitable} from "@lark-base-open/js-sdk";
 
 const Cell = (props) => {
   const { col, row, index, text } = props
@@ -63,7 +64,10 @@ const Cell = (props) => {
         return setRenderText(text || '')
       case 2: // 数字  string
         try {
-          const numberField = await tableComponent.getField(col.id)
+          const lookupFieldId = col.property.refFieldId
+          const quoteTableId = col.property.refTableId
+          const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
+          const numberField = await table.getField(lookupFieldId || col.id)
           const numberFormatter = await numberField.getFormatter()
           return text && setRenderText(numbField(numberFormatter, text))
         } catch (e) {
@@ -131,9 +135,11 @@ const Cell = (props) => {
       case 19: // 查找引用
         try {
           const lookupFieldId = col.property.refFieldId
-          const lookupField = await tableComponent.getField(lookupFieldId)
-          const type = await lookupField.getType()
-          return getElementByType(col, text, type)
+          const quoteTableId = col.property.refTableId
+          const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
+          const lookupField = await table.getField(lookupFieldId)
+          const cellType = await lookupField.getType()
+          return getElementByType(col, text, cellType)
         } catch (e) {
           return setRenderText('')
         }
