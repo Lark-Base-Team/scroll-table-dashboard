@@ -175,18 +175,7 @@ export async function getAllFields(value, firstLoadFlag = false) {
     if (state === 'Create' || (state === 'Config' && !firstLoadFlag)) {
       const table = await bitable.base.getTable(data_sorce);
       const view = await table.getViewById(first_range_id);
-      const tempField = await view.getFieldMetaList();
-      deepConfig.all_fields = tempField.map(d => {
-        return {
-          id: d.id,
-          name: d.name,
-          type: d.type,
-          property: [2, 19].includes(d.type) ? {
-            refFieldId: d.property.refFieldId,
-            refTableId: d.property.refTableId
-          } : null
-        }
-      })
+      deepConfig.all_fields = await view.getFieldMetaList();
       deepConfig.show_fields.length = 0;
       const len = deepConfig.all_fields.length <= 5 ? deepConfig.all_fields.length : 5
       for (let i = 0; i < len; i++) {

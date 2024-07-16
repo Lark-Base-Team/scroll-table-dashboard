@@ -32,14 +32,22 @@ const Cell = (props) => {
     return setTextScroll()
   }, [renderText, appHeight]);
 
-  const renderTagList = () => {
+  const renderTagList = async () => {
     const list = text?.split('，')
-    const tagList = list.map((d, i) => {
+    const tagList = await Promise.all(list.map(async (d, i) => {
+      const colorIdx = col.property.options.find(item => item.name === d).color
+      const selectOptColorInfo = await bitable.ui.getSelectOptionColorInfoList();
+      const bgColor = selectOptColorInfo.find(item => item.id === colorIdx).bgColor
+      const color = selectOptColorInfo.find(item => item.id === colorIdx).textColor
       return {
         children: d,
-        color: tagColorList[i % tagColorList.length]
+        style: {
+          backgroundColor: bgColor,
+          color: color
+        }
       }
-    })
+    }))
+
 
     setRenderText(
       (
@@ -49,7 +57,7 @@ const Cell = (props) => {
           size="small"
           avatarShape="circle"
           style={{
-            width: "80%"
+            width: "80%",
           }}
         />
       )
@@ -74,13 +82,17 @@ const Cell = (props) => {
           return setRenderText('')
         }
       case 3: // 单选  tag
+        const colorIdx = col.property.options.find(d => d.name === text).color
+        const selectOptColorInfo = await bitable.ui.getSelectOptionColorInfoList();
+        const bgColor = selectOptColorInfo.find(d => d.id === colorIdx).bgColor
+        const color = selectOptColorInfo.find(d => d.id === colorIdx).textColor
         return text && typeof text === 'string' && setRenderText(
           (
-            <Tag size="small" shape="circle" color="green">{text}</Tag>
+            <Tag size="small" shape="circle" style={{backgroundColor: bgColor, color}}>{text}</Tag>
           )
         )
       case 4: // 多选  tag
-        return text && renderTagList()
+        return text && await renderTagList()
       case 5: // 日期  date
       case 1001: // 创建时间  date
       case 1002: // 修改时间  date

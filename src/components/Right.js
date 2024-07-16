@@ -209,6 +209,17 @@ const App = forwardRef((props, ref) => {
       tableId: deepConfig.data_sorce,
     }
 
+    deepConfig.all_fields = deepConfig.all_fields.map(d => {
+      return {
+        id: d.id,
+        name: d.name,
+        type: d.type,
+        property: [2, 19].includes(d.type) ? {
+          refFieldId: d.property.refFieldId,
+          refTableId: d.property.refTableId
+        } : null
+      }
+    })
     dashboard.saveConfig({
       dataConditions,
       customConfig: deepConfig
