@@ -69,6 +69,10 @@ export function initColumns() {
 export function getDatas(table) {
   return new Promise(async (resolve, reject) => {
     const { data_range } = commonInfo.deepConfig;
+    const { formRef } = commonInfo
+    if (state === 'Config') {
+      formRef.current.formApi.setValue("data_range", data_range);
+    }
     const recordList = await table.getRecords({
       pageSize: 5000,
       viewId: data_range === "all" ? undefined : data_range,
@@ -132,9 +136,12 @@ export async function changeSource(value, firstLoadFlag = false) {
   return new Promise(async (resolve, reject) => {
     const { deepConfig, setDeepConfig, formRef, setDataRange } = commonInfo;
     deepConfig.data_sorce = value;
+    if (state === 'Create') {
+      formRef.current.formApi.setValue("data_range", "all");
+    }
+
     if (state === 'Config' || state === 'Create') {
       setDataRange([]);
-      formRef.current.formApi.setValue("data_range", "all");
       setDeepConfig(deepConfig);
     }
     if (!value) return;
