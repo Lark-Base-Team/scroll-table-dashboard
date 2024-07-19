@@ -77,7 +77,8 @@ const Cell = (props) => {
           const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
           const numberField = await table.getField(lookupFieldId || col.id)
           const numberFormatter = await numberField.getFormatter()
-          return text && setRenderText(numbField(numberFormatter, text))
+          const value = await numberField.getValue(row.recordId)
+          return (value || value === 0) && setRenderText(numbField(numberFormatter, value))
         } catch (e) {
           return setRenderText('')
         }
@@ -156,7 +157,15 @@ const Cell = (props) => {
           return setRenderText('')
         }
       case 20: // 公式
-        return setRenderText(text)
+        // const formulaField = await tableComponent.getField(col.id)
+        // const value = await  formulaField.getValue(row.recordId)
+        console.log(111111, text)
+        const formulaStr = typeof text === 'string'
+          ? text
+          : text?.map(d => {
+            return typeof d === 'string' || typeof d === 'number' ? d : d?.name
+          }).join('，')
+        return setRenderText(formulaStr)
       case 21: // 双向关联
         try {
           const doubleResult = typeof text === "object" ? text.text : text
@@ -190,7 +199,8 @@ const Cell = (props) => {
           const currencyField = await tableComponent.getField(col.id);
           const currencyFormat = await currencyField.getCurrencyCode()
           const digits = await currencyField.getDecimalDigits()
-          return text && setRenderText(`${currency[currencyFormat]}${text.toFixed(digits)}`)
+          const value = await currencyField.getValue(row.recordId)
+          return (value || value === 0) && setRenderText(`${currency[currencyFormat]}${value.toFixed(digits)}`)
         } catch (e) {
           return setRenderText('')
         }
