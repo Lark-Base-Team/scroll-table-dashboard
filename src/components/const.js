@@ -3,6 +3,7 @@ import { Toast } from "@douyinfe/semi-ui";
 import { line_computed, scroll_computed } from '../utils/computed'
 import app from "../App";
 import {cloneDeep} from "@douyinfe/semi-ui/lib/es/_utils";
+import record from "./config";
 
 let first_range_id = "";
 const state = dashboard.state
@@ -65,6 +66,28 @@ export function initColumns() {
   ];
 }
 
+const getTableData = async (table, res, params, times = 0) => {
+  let result
+  return new Promise(async (resolve, reject) => {
+    if (res.hasMore) {
+      times++;
+      const temp = await table.getRecordsByPage({
+        pageSize: params.pageSize,
+        pageToken: params.pageSize * times,
+        viewId: params.viewId
+      })
+      const recList = await getTableData(table, temp, params, times)
+      result = Object.assign(res, {
+        records: res.records.concat(recList.records)
+      })
+    } else {
+      result = res
+    }
+    console.log(111111, result)
+    resolve(result)
+  })
+}
+
 // TODO 获取数据
 export function getDatas(table) {
   return new Promise(async (resolve, reject) => {
@@ -73,10 +96,16 @@ export function getDatas(table) {
     if (state === 'Config') {
       formRef.current.formApi.setValue("data_range", data_range);
     }
-    const recordList = await table.getRecords({
-      pageSize: 5000,
+    const pageSize = 1
+    const res = await table.getRecordsByPage({
+      pageSize,
       viewId: data_range === "all" ? undefined : data_range,
     });
+
+    let recordList = await getTableData(table, res, {
+      pageSize,
+      viewId: data_range === "all" ? undefined : data_range
+    })
     const data = [];
     const list = recordList?.records || [];
     for (let i = 0; i < list.length; i++) {
