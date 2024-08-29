@@ -96,7 +96,7 @@ export function getDatas(table) {
     if (state === 'Config') {
       formRef.current.formApi.setValue("data_range", data_range);
     }
-    const pageSize = 1
+    const pageSize = 200
     const res = await table.getRecordsByPage({
       pageSize,
       viewId: data_range === "all" ? undefined : data_range,
