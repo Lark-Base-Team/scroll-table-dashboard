@@ -10,6 +10,11 @@
   .inline-block {
     display: inline-block;
   }
+  .inline-flex {
+    display: inline-flex;
+    column-gap: 4px!important;
+    height: auto;
+  }
   .pl-10 {
     padding-left: 10px;
   }

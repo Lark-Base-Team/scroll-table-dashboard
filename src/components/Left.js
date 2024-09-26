@@ -11,6 +11,7 @@ import {bitable, dashboard} from "@lark-base-open/js-sdk";
 import Cell from "./Cell";
 import {cloneDeep} from "@douyinfe/semi-ui/lib/es/_utils";
 import {line_computed, my_plat, scroll_computed, show_columns} from "../utils/computed";
+import { includesFilter, notIncludesFilter } from '../utils/filter'
 
 let scrollTimer = null
 
@@ -141,6 +142,18 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
           key: Math.random()
         })
       })
+      if (deepConfig.filters.length) {
+        result = result.filter(d => {
+          const tempList = []
+          deepConfig.filters.map(item => {
+            const filterFunc = item.condition === 'incl' ? includesFilter : notIncludesFilter
+            const value = d[item.column.id].split('，').map(x => JSON.parse(x))
+            tempList.push(filterFunc(value, item.value || false))
+          })
+          return deepConfig.filter_text === 'and' ? tempList.every(flag => flag) : tempList.some(flag => flag)
+        })
+      }
+      console.log(111111, result)
       setTableDatas(result)
       if (scrollFlag) {
         // initScroll();

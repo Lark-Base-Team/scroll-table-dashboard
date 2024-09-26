@@ -35,10 +35,10 @@ const Cell = (props) => {
   const renderTagList = async () => {
     const list = text?.split('，')
     const tagList = await Promise.all(list.map(async (d, i) => {
-      const colorIdx = col.property.options.find(item => item.name === d).color
+      const colorIdx = col.property?.options?.find(item => item.name === d)?.color
       const selectOptColorInfo = await bitable.ui.getSelectOptionColorInfoList();
-      const bgColor = selectOptColorInfo.find(item => item.id === colorIdx).bgColor
-      const color = selectOptColorInfo.find(item => item.id === colorIdx).textColor
+      const bgColor = selectOptColorInfo?.find(item => item.id === colorIdx)?.bgColor
+      const color = selectOptColorInfo?.find(item => item.id === colorIdx)?.textColor
       return {
         children: d,
         style: {
@@ -83,10 +83,10 @@ const Cell = (props) => {
           return setRenderText('')
         }
       case 3: // 单选  tag
-        const colorIdx = col.property.options.find(d => d.name === text).color
+        const colorIdx = col.property?.options?.find(d => d.name === text)?.color
         const selectOptColorInfo = await bitable.ui.getSelectOptionColorInfoList();
-        const bgColor = selectOptColorInfo.find(d => d.id === colorIdx).bgColor
-        const color = selectOptColorInfo.find(d => d.id === colorIdx).textColor
+        const bgColor = selectOptColorInfo?.find(d => d.id === colorIdx)?.bgColor
+        const color = selectOptColorInfo?.find(d => d.id === colorIdx)?.textColor
         return text && typeof text === 'string' && setRenderText(
           (
             <Tag size="small" shape="circle" style={{backgroundColor: bgColor, color}}>{text}</Tag>
@@ -98,17 +98,21 @@ const Cell = (props) => {
       case 1001: // 创建时间  date
       case 1002: // 修改时间  date
         try {
-          const dateField = await tableComponent.getField(col.id)
+          const lookupFieldId = col.property.refFieldId
+          const quoteTableId = col.property.refTableId
+          const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
+          const dateField = await table.getField(lookupFieldId || col.id)
           const dateFormatter = await dateField.getDateFormat()
-          return setRenderText(moment(text).format(dateFormatter.replaceAll('d', 'D')))
+          return setRenderText(moment(Number(text)).format(dateFormatter.replaceAll('d', 'D')))
         } catch (e) {
           return setRenderText('')
         }
       case 7: // 复选框  checkbox
+        const list = text.split('，').map(d => JSON.parse(d))
+        console.log('checked: ', list)
+        const domList = list.map(d =>  <Checkbox style={{display: 'inline'}} checked={d}/>)
         return setRenderText(
-          (
-            <Checkbox checked={!!text}/>
-          )
+            domList
         )
       case 11: // 人员  string
       case 1003: // 创建人  string
@@ -125,18 +129,27 @@ const Cell = (props) => {
         )
       case 17: // 附件  Attachment
         try {
+          const lookupFieldId = col.property.refFieldId
+          const quoteTableId = col.property.refTableId
+          const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
+
           const tokenList = text?.map(d => d.token)
-          const url = await tableComponent.getCellAttachmentUrls(tokenList, col.id, row.recordId)
-          return setRenderText(
-            url.map(d => {
-              return (
-                <Image src={d}/>
-              )
-            })
-          )
+          let url
+          if (tokenList && tokenList.length) {
+            url = await table.getCellAttachmentUrls(tokenList, lookupFieldId || col.id, row.recordId)
+          }
+          if (url && url.length) {
+            return setRenderText(
+              url.map(d => {
+                return (
+                  <Image src={d}/>
+                )
+              })
+            )
+          }
         } catch (e) {
           // Toast.error("服务端获取附件数据出错");
-          return setRenderText('')
+          return setRenderText('333')
         }
       case 18: // 单向关联
         try {
@@ -159,7 +172,6 @@ const Cell = (props) => {
       case 20: // 公式
         // const formulaField = await tableComponent.getField(col.id)
         // const value = await  formulaField.getValue(row.recordId)
-        console.log(111111, text)
         const formulaStr = typeof text === 'string'
           ? text
           : text?.map(d => {
@@ -241,7 +253,7 @@ const Cell = (props) => {
 
   return (
     <div className="width-full" ref={cellRef}>
-      <p className="inline-block" ref={textRef} style={{width: 'fit-content'}}>
+      <p className="inline-flex" ref={textRef} style={{width: 'fit-content'}}>
         {renderText}
       </p>
       {deepConfig.overflow_ellipsis && scrollFlag

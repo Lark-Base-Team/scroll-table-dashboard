@@ -5,7 +5,7 @@ import {
   Button,
   InputNumber,
   Switch,
-  Input,
+  Input, Toast,
 } from "@douyinfe/semi-ui";
 import {
   getDataSource,
@@ -24,6 +24,9 @@ import {
 import { cloneDeep } from "@douyinfe/semi-ui/lib/es/_utils";
 import ConfigContext from "./ConfigContext";
 import { bitable, dashboard } from "@lark-base-open/js-sdk";
+import FilterInput from './FilterInput'
+import '../style/right.scss'
+import cell from "./Cell";
 
 const App = forwardRef((props, ref) => {
   const { deepConfig, setDeepConfig } = useContext(ConfigContext)
@@ -32,11 +35,40 @@ const App = forwardRef((props, ref) => {
   const [dataRange, setDataRange] = useState([]); // 数据范围下拉
   const [allField, setAllField] = useState([]); // 选择字段下拉
   const [showAddField, setShowAddField] = useState(false); //设置添加字段下拉框
+  const [showAddFilter, setShowAddFilter] = useState(false); //设置添加筛选条件下拉
+  const [filterList, setFilterList] = useState([]) // 筛选条件列表
+  const [filterData, setFilterData] = useState({}) // 新增筛选条件对象
   commonInfo.deepConfig = deepConfig;
   commonInfo.setDeepConfig = setDeepConfig;
   commonInfo.formRef = formRef;
   commonInfo.setDataRange = setDataRange;
 
+  const filterCondition = [
+    // {
+    //   value: 'eq',
+    //   label: '等于'
+    // },
+    // {
+    //   value: 'notEq',
+    //   label: '不等于'
+    // },
+    {
+      value: 'incl',
+      label: '包含'
+    },
+    {
+      value: 'notIncl',
+      label: '不包含'
+    },
+    // {
+    //   value: 'empt',
+    //   label: '为空'
+    // },
+    // {
+    //   value: 'notEmpt',
+    //   label: '不为空'
+    // }
+  ]
   // 修改数据源
   const onChangeSource = async (value) => {
     await changeSource(value);
@@ -69,9 +101,31 @@ const App = forwardRef((props, ref) => {
   // 选择下拉添加字段
   function onAddField(id) {
     const temp = cloneDeep(deepConfig)
-    temp.show_fields = temp.show_fields.concat(deepConfig.all_fields.find(d => d.id === id))
+    temp.show_fields = temp.show_fields.concat(deepConfig.all_fields?.find(d => d.id === id))
     setDeepConfig(temp)
     setShowAddField(false)
+  }
+
+  // 选择筛选字段
+  const onAddFilter = (id) => {
+    setFilterData({
+      column: {
+        id,
+        name: deepConfig.all_fields?.find(d => d.id === id).name
+      },
+      type: filterList?.find(d => d.value === id).type,
+      condition: '',
+      value: ''
+    })
+  }
+
+  // 筛选条件修改
+  const onConditionChange = (value) => {
+    const tempFilter = cloneDeep(filterData)
+    setFilterData(Object.assign(tempFilter, {
+      condition: value,
+      value: ''
+    }))
   }
 
   // 点击添加字段按钮显示下拉框
@@ -203,6 +257,29 @@ const App = forwardRef((props, ref) => {
     setDeepConfig(temp)
   }
 
+  // 添加筛选条件
+  const handleShowAddFilter = () => {
+    setShowAddFilter(true)
+    setFilterData({
+      // column: deepConfig.all_fields?.find(d => d.id === filterList[0].value),
+      // type: filterList[0].type,
+      column: {},
+      type: '',
+      condition: '',
+      value: ''
+    })
+  }
+
+  const handleAddFilter = () => {
+    if (!filterData.column.id || !filterData.condition) {
+      return Toast.error("请填写筛选条件");
+    }
+    const temp = cloneDeep(deepConfig)
+    temp.filters = temp.filters.concat(filterData)
+    setDeepConfig(temp)
+    setShowAddFilter(false)
+  }
+
   // 确定添加
   const handleSure = async () => {
     const dataConditions = {
@@ -238,6 +315,47 @@ const App = forwardRef((props, ref) => {
     setAllField(fieldList)
   }, [deepConfig.show_fields, allFields]);
 
+  const getActualType = async (col) => {
+    if (col.type === 19) {
+      const lookupFieldId = col.property.refFieldId
+      const quoteTableId = col.property.refTableId
+      const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : null
+      const lookupField = await table?.getField(lookupFieldId)
+      const cellType = await lookupField.getType()
+      return cellType
+    } else {
+      return  col.type
+    }
+  }
+
+  const handleDeleteFilter = (item) => {
+    const temp = cloneDeep(deepConfig)
+    temp.filters = temp.filters.filter(d => d.column.id !== item.column.id);
+    setDeepConfig(temp)
+  }
+
+  const onFilterTextChange = (val) => {
+    const temp = cloneDeep(deepConfig)
+    temp.filter_text = val
+    setDeepConfig(temp)
+  }
+
+  useEffect(() => {
+    const temp = cloneDeep(allFields)
+    Promise.all(temp?.map(async d => {
+      d.actualType = await getActualType(d)
+    })).then(res => {
+      const filter = temp?.filter(d => [7].includes(d.actualType) && !deepConfig.filters?.some(item => item.column.id === d.id)).map(d => {
+        return {
+          value: d?.id,
+          label: d?.name,
+          key: d?.id,
+          type: d?.actualType,
+        }
+      })
+      setFilterList(filter)
+    })
+  }, [allFields, deepConfig.filters]);
 
   return (
     <div className="right-box">
@@ -301,10 +419,94 @@ const App = forwardRef((props, ref) => {
           >
           </Select>}
         </Form.Slot>
-        <Form.Slot label={{ text: "行数" }}>
+        <Form.Slot label={{ text: "筛选" }}>
+          {deepConfig.filters?.map((item) => (
+            <div key={item.title} className="filter-item field-item">
+              <div className="filter-name field-item-title">
+                <div style={{overflow: "hidden", textOverflow: "ellipsis"}}>{item.column.name}</div>
+              </div>
+              <div className="filter-condition field-item-title">
+                <div style={{overflow: "hidden", textOverflow: "ellipsis"}}>{filterCondition?.find(d => d.value === item.condition).label}</div>
+              </div>
+              <div className="filter-value field-item-title">
+                  <FilterInput
+                    data={item}
+                    value={item.value}
+                    disabled={true}
+                  />
+              </div>
+              <IconDelete
+                className="field-item-delete"
+                onClick={() => handleDeleteFilter(item)}
+              />
+            </div>
+          ))}
+          <div className="filter-bottom">
+            <Button
+              theme="borderless"
+              type="primary"
+              className="field-item-add-btn"
+              onClick={handleShowAddFilter}
+            >
+              <IconPlus />
+              添加条件
+            </Button>
+            {deepConfig.filters.length > 1 && <span className="filter-text">
+              <div className="text">符合</div>
+              <Select
+                className="filter-text-select"
+                optionList={[{label: '所有', value: 'and'}, {label: '任一', value: 'or'}]}
+                onChange={onFilterTextChange}
+                value={deepConfig.filter_text}
+              />
+              <div className="text">条件</div>
+            </span>}
+          </div>
+          {showAddFilter &&
+            <>
+              <div className="add-condition-panel">
+                <Select
+                  filter
+                  placeholder="搜索"
+                  className="filter-name"
+                  onChange={onAddFilter}
+                  optionList={filterList}
+                  value={filterData.column.id}
+                />
+                <Select
+                  className="filter-condition"
+                  optionList={filterCondition}
+                  onChange={onConditionChange}
+                  value={filterData.condition}
+                />
+                <span
+                  className="filter-value"
+                >
+                  <ConfigContext.Provider value={{filterData, setFilterData}}>
+                      <FilterInput
+                        data={filterData}
+                        value={filterData.value}
+                      />
+                  </ConfigContext.Provider>
+                </span>
+              </div>
+              <div className="add-condition-btn">
+                <Button
+                  theme="solid"
+                  type="primary"
+                  className="submit-btn"
+                  onClick={handleAddFilter}
+                  style={{width: "70px"}}
+                >
+                  确定
+                </Button>
+              </div>
+            </>}
+        </Form.Slot>
+        <Form.Slot label={{text: "行数"}}>
           <div className="form-second-box">
             <div>
-              <Form.Label text="桌面端" style={{ fontSize: "12px" }}></Form.Label>
+              <Form.Label text="桌面端" style={{fontSize: "12px"}}></Form.Label>
               <InputNumber
                 min={0}
                 value={deepConfig.pc_line}
@@ -312,7 +514,7 @@ const App = forwardRef((props, ref) => {
               />
             </div>
             <div className="form-second-box-item-2">
-              <Form.Label text="移动端" style={{ fontSize: "12px" }}></Form.Label>
+              <Form.Label text="移动端" style={{fontSize: "12px"}}></Form.Label>
               <InputNumber
                 min={0}
                 value={deepConfig.phone_line}

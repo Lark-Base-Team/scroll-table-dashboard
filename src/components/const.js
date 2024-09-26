@@ -115,7 +115,7 @@ export function getDatas(table) {
         const valueInfo = fields[key];
         if (!valueInfo) return;
         const value =
-          valueInfo?.map?.((it) => it?.text)?.join("，") ||
+          valueInfo?.map?.((it) => typeof it === 'object' ? it?.text : it)?.join("，") ||
           valueInfo?.text ||
           valueInfo;
         info[key] = value;
@@ -233,7 +233,7 @@ export function addField(id) {
   const { all_fields, show_fields } = deepConfig;
   const temp = cloneDeep(show_fields)
   temp.push(
-    JSON.parse(JSON.stringify(all_fields.find((item) => item.id === id)))
+    JSON.parse(JSON.stringify(all_fields?.find((item) => item.id === id)))
   );
   // deepConfig.show_fields = cloneDeep(temp)
   if (state === 'Config' || state === 'Create') {

@@ -1,0 +1,42 @@
+.add-condition-panel, .filter-item {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 8px;
+  column-gap: 4px;
+}
+.filter-name {
+  flex: 1;
+}
+.filter-condition {
+  flex: 1;
+}
+.filter-value {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--semi-color-stroke);
+  border-radius: 6px;
+}
+
+.add-condition-btn {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+.filter-bottom {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  .filter-text {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    column-gap: 4px;
+    .text {
+      white-space: nowrap;
+    }
+  }
+}

@@ -20,6 +20,8 @@ const config = {
   zebra_even_light_bg: "#F4F5F5", // 斑马纹 偶数 浅色 背景色
   show_fields: [], // 需要显示的字段
   all_fields: [], // 所有字段
+  filters: [],
+  filter_text: 'and'
 };
 
 export default config;
