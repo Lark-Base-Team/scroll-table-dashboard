@@ -56,6 +56,7 @@ function App() {
     dashboard.onThemeChange(theme => {
       console.log('??? theme', theme);
       setCurrentTheme(theme.data);
+      setMainTheme(theme.data.theme)
       updateTheme(theme.data.theme);
     })
   }, []);
@@ -72,6 +73,7 @@ function App() {
     // });
     const themeConfig = await dashboard.getTheme();
     setCurrentTheme(themeConfig);
+    setMainTheme(themeConfig.theme)
     updateTheme(themeConfig.theme)
   }
 

@@ -83,7 +83,7 @@ const getTableData = async (table, res, params, times = 0) => {
     } else {
       result = res
     }
-    console.log(111111, result)
+    // console.log(111111, result)
     resolve(result)
   })
 }
