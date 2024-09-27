@@ -53,12 +53,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    dashboard.onThemeChange(theme => {
-      console.log('??? theme', theme);
-      setCurrentTheme(theme.data);
-      setMainTheme(theme.data.theme)
-      updateTheme(theme.data.theme);
-    })
+    // dashboard.onThemeChange(theme => {
+    //   console.log('??? theme', theme);
+    //   setCurrentTheme(theme.data);
+    //   setMainTheme(theme.data.theme)
+    //   updateTheme(theme.data.theme);
+    // })
   }, []);
 
   useEffect(() => {
@@ -66,15 +66,15 @@ function App() {
   }, [deepConfig]);
 
   const getTheme = async () => {
-    // const theme = await bitable.bridge.getTheme();
-    // setTheme(theme)
-    // await bitable.bridge.onThemeChange((event) => {
-    //   setTheme(event.data.theme)
-    // });
-    const themeConfig = await dashboard.getTheme();
-    setCurrentTheme(themeConfig);
-    setMainTheme(themeConfig.theme)
-    updateTheme(themeConfig.theme)
+    const theme = await bitable.bridge.getTheme();
+    setTheme(theme)
+    await bitable.bridge.onThemeChange((event) => {
+      setTheme(event.data.theme)
+    });
+    // const themeConfig = await dashboard.getTheme();
+    // setCurrentTheme(themeConfig);
+    // setMainTheme(themeConfig.theme)
+    // updateTheme(themeConfig.theme)
   }
 
   const setTheme = (theme) => {
