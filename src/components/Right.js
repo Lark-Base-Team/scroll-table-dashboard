@@ -54,12 +54,19 @@ const App = forwardRef((props, ref) => {
     // },
     {
       value: 'incl',
-      label: '包含'
+      label: '包含',
+      type: [7]
     },
     {
       value: 'notIncl',
-      label: '不包含'
+      label: '不包含',
+      type: [7]
     },
+    {
+      value: 'in',
+      label: '属于',
+      type: [5, 1001, 1002]
+    }
     // {
     //   value: 'empt',
     //   label: '为空'
@@ -274,6 +281,9 @@ const App = forwardRef((props, ref) => {
     if (!filterData.column.id || !filterData.condition) {
       return Toast.error("请填写筛选条件");
     }
+    if ([5, 1001, 1002].includes(filterData.type) && (!filterData.value || !filterData.value.length || !filterData.value[0] || !filterData.value[1])) {
+      return Toast.error("请填写筛选条件");
+    }
     const temp = cloneDeep(deepConfig)
     temp.filters = temp.filters.concat(filterData)
     setDeepConfig(temp)
@@ -340,12 +350,16 @@ const App = forwardRef((props, ref) => {
     setDeepConfig(temp)
   }
 
+  const getFilterCondition = () => {
+    return filterCondition.filter(d => d.type.includes(filterData.type))
+  }
+
   useEffect(() => {
     const temp = cloneDeep(allFields)
     Promise.all(temp?.map(async d => {
       d.actualType = await getActualType(d)
     })).then(res => {
-      const filter = temp?.filter(d => [7].includes(d.actualType) && !deepConfig.filters?.some(item => item.column.id === d.id)).map(d => {
+      const filter = temp?.filter(d => [5, 7, 1001, 1002].includes(d.actualType) && !deepConfig.filters?.some(item => item.column.id === d.id)).map(d => {
         return {
           value: d?.id,
           label: d?.name,
@@ -421,25 +435,55 @@ const App = forwardRef((props, ref) => {
         </Form.Slot>
         <Form.Slot label={{ text: "筛选" }}>
           {deepConfig.filters?.map((item) => (
-            <div key={item.title} className="filter-item field-item">
-              <div className="filter-name field-item-title">
-                <div style={{overflow: "hidden", textOverflow: "ellipsis"}}>{item.column.name}</div>
+            <>
+              <div key={item.title} className="filter-item field-item">
+                <div className="filter-name field-item-title">
+                  <div style={{overflow: "hidden", textOverflow: "ellipsis"}}>{item.column.name}</div>
+                </div>
+                <div className="filter-condition field-item-title">
+                  <div style={{
+                    overflow: "hidden",
+                    textOverflow: "ellipsis"
+                  }}>{filterCondition?.find(d => d.value === item.condition).label}</div>
+                </div>
+                {
+                  [5, 1001, 1002].includes(item.type) ? (<div style={{width: '20px'}}></div>) : (
+                    <>
+                      <div className="filter-value field-item-title">
+                        <FilterInput
+                          data={item}
+                          value={item.value}
+                          disabled={true}
+                        />
+                      </div>
+                      <IconDelete
+                        className="field-item-delete"
+                        onClick={() => handleDeleteFilter(item)}
+                      />
+                    </>
+                  )
+                }
               </div>
-              <div className="filter-condition field-item-title">
-                <div style={{overflow: "hidden", textOverflow: "ellipsis"}}>{filterCondition?.find(d => d.value === item.condition).label}</div>
-              </div>
-              <div className="filter-value field-item-title">
-                  <FilterInput
-                    data={item}
-                    value={item.value}
-                    disabled={true}
-                  />
-              </div>
-              <IconDelete
-                className="field-item-delete"
-                onClick={() => handleDeleteFilter(item)}
-              />
-            </div>
+              {
+                [5, 1001, 1002].includes(item.type) ? (
+                  <>
+                    <div className="filter-item field-item">
+                      <div className="filter-value field-item-title">
+                        <FilterInput
+                          data={item}
+                          value={item.value}
+                          disabled={true}
+                        />
+                      </div>
+                      <IconDelete
+                        className="field-item-delete"
+                        onClick={() => handleDeleteFilter(item)}
+                      />
+                    </div>
+                  </>
+                ) : ''
+              }
+            </>
           ))}
           <div className="filter-bottom">
             <Button
@@ -448,7 +492,7 @@ const App = forwardRef((props, ref) => {
               className="field-item-add-btn"
               onClick={handleShowAddFilter}
             >
-              <IconPlus />
+              <IconPlus/>
               添加条件
             </Button>
             {deepConfig.filters.length > 1 && <span className="filter-text">
@@ -475,7 +519,7 @@ const App = forwardRef((props, ref) => {
                 />
                 <Select
                   className="filter-condition"
-                  optionList={filterCondition}
+                  optionList={getFilterCondition()}
                   onChange={onConditionChange}
                   value={filterData.condition}
                 />

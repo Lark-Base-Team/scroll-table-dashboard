@@ -98,11 +98,14 @@ const Cell = (props) => {
       case 1001: // 创建时间  date
       case 1002: // 修改时间  date
         try {
-          const lookupFieldId = col.property.refFieldId
-          const quoteTableId = col.property.refTableId
+          const lookupFieldId = col.property?.refFieldId
+          const quoteTableId = col.property?.refTableId
           const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
           const dateField = await table.getField(lookupFieldId || col.id)
           const dateFormatter = await dateField.getDateFormat()
+          if (!text) {
+            throw ''
+          }
           return setRenderText(moment(Number(text)).format(dateFormatter.replaceAll('d', 'D')))
         } catch (e) {
           return setRenderText('')

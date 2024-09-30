@@ -9,7 +9,8 @@ import {
   Toast,
   Progress,
   Rating,
-  Input
+  Input,
+  DatePicker
 } from "@douyinfe/semi-ui"
 import moment from "moment";
 import "../style/cell.scss"
@@ -31,6 +32,11 @@ const FilterInput = (props) => {
     }))
   }
 
+  const handleDateChange = (date) => {
+    const res = date.map(d => Date.parse(d))
+    handleInputChange(res)
+  }
+
   const renderByType = type => {
     switch (type) {
       case 1: // 多行文本  string
@@ -40,10 +46,11 @@ const FilterInput = (props) => {
         return <Input disabled={disabled} value={value} onChange={(e) => handleInputChange(e.target.checked)}/>
       case 3: // 单选  tag
       case 4: // 多选  tag
+        return ''
       case 5: // 日期  date
       case 1001: // 创建时间  date
       case 1002: // 修改时间  date
-        return ''
+        return <DatePicker disabled={disabled} type="dateRange" value={value} onChange={(date, dateString) => handleDateChange(date)} />;
       case 7: // 复选框  checkbox
         return <Checkbox disabled={disabled} checked={!!value} onChange={(e) => handleInputChange(e.target.checked)} />
       case 11: // 人员  string
