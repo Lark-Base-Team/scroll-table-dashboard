@@ -1,4 +1,4 @@
-import {useContext, useEffect, useRef, useState} from "react";
+import React, {useContext, useEffect, useRef, useState} from "react";
 import ConfigContext from "./ConfigContext";
 import { numbField, tagColorList, currency } from "../utils/formatter";
 import {
@@ -10,7 +10,7 @@ import {
   Progress,
   Rating,
   Input,
-  DatePicker
+  DatePicker, Select
 } from "@douyinfe/semi-ui"
 import moment from "moment";
 import "../style/cell.scss"
@@ -50,7 +50,30 @@ const FilterInput = (props) => {
       case 5: // 日期  date
       case 1001: // 创建时间  date
       case 1002: // 修改时间  date
-        return <DatePicker disabled={disabled} type="dateRange" value={value} onChange={(date, dateString) => handleDateChange(date)} />;
+        const filterList = [
+          {label: '今天', value: 1},
+          {label: '明天', value: 2},
+          {label: '昨天', value: 3},
+          {label: '本周', value: 4},
+          {label: '上周', value: 5},
+          {label: '本月', value: 6},
+          {label: '上月', value: 7},
+          {label: '过去7天内', value: 8},
+          {label: '未来7天内', value: 9},
+          {label: '过去30天内', value: 10},
+          {label: '未来30天内', value: 11}
+        ]
+        return (
+          <Select
+            filter
+            disabled={disabled}
+            value={value}
+            onChange={(e) => handleInputChange(e)}
+            optionList={filterList}
+          >
+          </Select>
+        )
+        // return <DatePicker disabled={disabled} type="dateRange" value={value} onChange={(date, dateString) => handleDateChange(date)} />;
       case 7: // 复选框  checkbox
         return <Checkbox disabled={disabled} checked={!!value} onChange={(e) => handleInputChange(e.target.checked)} />
       case 11: // 人员  string

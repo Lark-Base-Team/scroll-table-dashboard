@@ -149,13 +149,13 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
             const filterConditionMap = {
               'incl': includesFilter,
               'notIncl': notIncludesFilter,
-              'in': dateInFilter
+              'eq': dateInFilter
             }
             const filterFunc = filterConditionMap[item.condition] //item.condition === 'incl' ? includesFilter : notIncludesFilter
             const value = typeof d[item.column.id] == 'string' ? d[item.column.id].split('，').map(x => JSON.parse(x)) : d[item.column.id]
-            // console.log(1111111, value, item.value)
             tempList.push(filterFunc(value, item.value || false))
           })
+          console.log(1111111222 ,tempList.length)
           return deepConfig.filter_text === 'and' ? tempList.every(flag => flag) : tempList.some(flag => flag)
         })
       }

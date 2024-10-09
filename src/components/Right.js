@@ -44,10 +44,11 @@ const App = forwardRef((props, ref) => {
   commonInfo.setDataRange = setDataRange;
 
   const filterCondition = [
-    // {
-    //   value: 'eq',
-    //   label: '等于'
-    // },
+    {
+      value: 'eq',
+      label: '等于',
+      type: [5, 1001, 1002]
+    },
     // {
     //   value: 'notEq',
     //   label: '不等于'
@@ -62,11 +63,11 @@ const App = forwardRef((props, ref) => {
       label: '不包含',
       type: [7]
     },
-    {
-      value: 'in',
-      label: '属于',
-      type: [5, 1001, 1002]
-    }
+    // {
+    //   value: 'in',
+    //   label: '属于',
+    //   type: [5, 1001, 1002]
+    // }
     // {
     //   value: 'empt',
     //   label: '为空'
@@ -281,7 +282,7 @@ const App = forwardRef((props, ref) => {
     if (!filterData.column.id || !filterData.condition) {
       return Toast.error("请填写筛选条件");
     }
-    if ([5, 1001, 1002].includes(filterData.type) && (!filterData.value || !filterData.value.length || !filterData.value[0] || !filterData.value[1])) {
+    if ([5, 1001, 1002].includes(filterData.type) && !filterData.value) {
       return Toast.error("请填写筛选条件");
     }
     const temp = cloneDeep(deepConfig)
@@ -446,7 +447,18 @@ const App = forwardRef((props, ref) => {
                     textOverflow: "ellipsis"
                   }}>{filterCondition?.find(d => d.value === item.condition).label}</div>
                 </div>
-                {
+                <div className="filter-value field-item-title">
+                  <FilterInput
+                    data={item}
+                    value={item.value}
+                    disabled={true}
+                  />
+                </div>
+                <IconDelete
+                  className="field-item-delete"
+                  onClick={() => handleDeleteFilter(item)}
+                />
+               {/* {
                   [5, 1001, 1002].includes(item.type) ? (<div style={{width: '20px'}}></div>) : (
                     <>
                       <div className="filter-value field-item-title">
@@ -462,9 +474,9 @@ const App = forwardRef((props, ref) => {
                       />
                     </>
                   )
-                }
+                }*/}
               </div>
-              {
+              {/*{
                 [5, 1001, 1002].includes(item.type) ? (
                   <>
                     <div className="filter-item field-item">
@@ -482,7 +494,7 @@ const App = forwardRef((props, ref) => {
                     </div>
                   </>
                 ) : ''
-              }
+              }*/}
             </>
           ))}
           <div className="filter-bottom">
