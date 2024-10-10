@@ -77,8 +77,7 @@ const Cell = (props) => {
           const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
           const numberField = await table.getField(lookupFieldId || col.id)
           const numberFormatter = await numberField.getFormatter()
-          const value = await numberField.getValue(row.recordId)
-          return (value || value === 0) && setRenderText(numbField(numberFormatter, value))
+          return (text || text === 0) && setRenderText(numbField(numberFormatter, text))
         } catch (e) {
           return setRenderText('')
         }
