@@ -167,6 +167,7 @@ const Cell = (props) => {
           const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
           const lookupField = await table.getField(lookupFieldId)
           const cellType = await lookupField.getType()
+          console.log(111111111, cellType)
           return getElementByType(col, text, cellType)
         } catch (e) {
           return setRenderText('')

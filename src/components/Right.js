@@ -434,7 +434,7 @@ const App = forwardRef((props, ref) => {
           >
           </Select>}
         </Form.Slot>
-        <Form.Slot label={{ text: "筛选" }}>
+        {/*<Form.Slot label={{ text: "筛选" }}>
           {deepConfig.filters?.map((item) => (
             <>
               <div key={item.title} className="filter-item field-item">
@@ -458,7 +458,7 @@ const App = forwardRef((props, ref) => {
                   className="field-item-delete"
                   onClick={() => handleDeleteFilter(item)}
                 />
-               {/* {
+                {
                   [5, 1001, 1002].includes(item.type) ? (<div style={{width: '20px'}}></div>) : (
                     <>
                       <div className="filter-value field-item-title">
@@ -474,9 +474,9 @@ const App = forwardRef((props, ref) => {
                       />
                     </>
                   )
-                }*/}
+                }
               </div>
-              {/*{
+              {
                 [5, 1001, 1002].includes(item.type) ? (
                   <>
                     <div className="filter-item field-item">
@@ -494,7 +494,7 @@ const App = forwardRef((props, ref) => {
                     </div>
                   </>
                 ) : ''
-              }*/}
+              }
             </>
           ))}
           <div className="filter-bottom">
@@ -558,7 +558,7 @@ const App = forwardRef((props, ref) => {
                 </Button>
               </div>
             </>}
-        </Form.Slot>
+        </Form.Slot>*/}
         <Form.Slot label={{text: "行数"}}>
           <div className="form-second-box">
             <div>
