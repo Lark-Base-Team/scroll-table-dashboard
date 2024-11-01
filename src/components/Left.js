@@ -16,7 +16,7 @@ import {line_computed, my_plat, scroll_computed, show_columns} from "../utils/co
 let scrollTimer = null
 
 const VirtualizedFixedDemo = forwardRef((props, ref) => {
-  const {deepConfig, setDeepConfig, appHeight, dataRange, setDataRange, mainTheme} = useContext(ConfigContext)
+  const {deepConfig, setDeepConfig, appHeight, dataRange, setDataRange, mainTheme, currentTheme} = useContext(ConfigContext)
   let virtualizedListRef = useRef();
   const scrollPanel = useRef()
   const [scroll, setScroll] = useState({});
@@ -171,7 +171,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
   const handleRow = (row, index) => {
     if (deepConfig.is_line_height && deepConfig.is_zebra) { // 设置高亮并且设置斑马纹 高亮优先级高于斑马纹
       if (deepConfig.line_height_row === 'first') {
-        if (mainTheme === 'DARK') {
+        if (currentTheme?.theme === 'DARK') {
           return index === 0
             ? {
               style: {
@@ -210,7 +210,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
         } else {
           lineList = lineList.map(d => Number(d))
         }
-        if (mainTheme === 'DARK') {
+        if (currentTheme?.theme === 'DARK') {
           if (lineList.includes(index + 1)) {
             return {
               style: {
@@ -246,14 +246,18 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
       }
     } else if (deepConfig.is_line_height && !deepConfig.is_zebra) { // 只设置高亮
       if (deepConfig.line_height_row === 'first') { //首行高亮
-        if (mainTheme === 'DARK') {
+        if (currentTheme?.theme === 'DARK') {
           return index === 0
             ? {
               style: {
                 background: deepConfig.line_hgith_dark_bg
               }
             }
-            : {}
+            : {
+              style: {
+                background: currentTheme?.chartBgColor
+              }
+            }
         } else {
           return index === 0
             ? {
@@ -261,7 +265,11 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
                 background: deepConfig.line_hgith_light_bg
               }
             }
-            : {}
+            : {
+              style: {
+                background: currentTheme?.chartBgColor
+              }
+            }
         }
       } else {
         let lineList = deepConfig.appoint_line_heights
@@ -269,11 +277,15 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
           .split(',')
         const formatErr = lineList.some(d => isNaN(d))
         if (formatErr) {
-          return {}
+          return {
+            style: {
+              background: currentTheme?.chartBgColor
+            }
+          }
         } else {
           lineList = lineList.map(d => Number(d))
         }
-        if (mainTheme === 'DARK') {
+        if (currentTheme?.theme === 'DARK') {
           if (lineList.includes(index + 1)) {
             return {
               style: {
@@ -281,7 +293,11 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
               }
             }
           } else {
-            return {}
+            return {
+              style: {
+                background: currentTheme?.chartBgColor
+              }
+            }
           }
         } else {
           if (lineList.includes(index + 1)) {
@@ -302,7 +318,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
         }
       }
     } else if (!deepConfig.is_line_height && deepConfig.is_zebra) { // 只设置斑马纹
-      if (mainTheme === 'DARK') {
+      if (currentTheme?.theme === 'DARK') {
         return {
           style: {
             background: index % 2 === 0
@@ -320,7 +336,11 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
         }
       }
     } else { //都不设置
-      return {}
+      return {
+        style: {
+          background: currentTheme?.chartBgColor
+        }
+      }
     }
   }
 

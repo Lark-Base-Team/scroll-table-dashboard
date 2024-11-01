@@ -7,7 +7,6 @@ import {commonInfo, getDataSource} from "./components/const";
 import ConfigContext from "./components/ConfigContext";
 import {dashboard, base, bitable} from "@lark-base-open/js-sdk";
 import {my_plat} from "./utils/computed";
-import { updateTheme } from './utils/hooks';
 
 
 function App() {
@@ -18,6 +17,7 @@ function App() {
   const [appHeight, setAppHeight] = useState(0);
   const [mainTheme, setMainTheme] = useState('LIGHT')
   const [currentTheme, setCurrentTheme] = useState();
+  const [themeConfig, setThemeConfig] = useState();
 
   commonInfo.appRef = appRef
 
@@ -53,12 +53,12 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // dashboard.onThemeChange(theme => {
-    //   console.log('??? theme', theme);
-    //   setCurrentTheme(theme.data);
-    //   setMainTheme(theme.data.theme)
-    //   updateTheme(theme.data.theme);
-    // })
+    dashboard.onThemeChange(theme => {
+      console.log('??? theme', theme);
+      setCurrentTheme(theme.data);
+      setTheme(theme.data)
+      // updateTheme(theme.data.theme);
+    })
   }, []);
 
   useEffect(() => {
@@ -66,21 +66,23 @@ function App() {
   }, [deepConfig]);
 
   const getTheme = async () => {
-    const theme = await bitable.bridge.getTheme();
+    // const theme = await bitable.bridge.getTheme();
+    // setTheme(theme)
+    // await bitable.bridge.onThemeChange((event) => {
+    //   setTheme(event.data.theme)
+    // });
+
+    const theme = await dashboard.getTheme();
+    console.log(111111111, theme)
+    setCurrentTheme(theme);
     setTheme(theme)
-    await bitable.bridge.onThemeChange((event) => {
-      setTheme(event.data.theme)
-    });
-    // const themeConfig = await dashboard.getTheme();
-    // setCurrentTheme(themeConfig);
-    // setMainTheme(themeConfig.theme)
-    // updateTheme(themeConfig.theme)
+    // setThemeConfig(theme);
   }
 
   const setTheme = (theme) => {
     setMainTheme(theme)
     const body = document.body;
-    if (theme === 'LIGHT') {
+    if (theme.theme === 'LIGHT') {
       body.removeAttribute('theme-mode');
     } else {
       body.setAttribute('theme-mode', 'dark');
@@ -101,7 +103,7 @@ function App() {
 
   return (
     <div id="app-box" ref={appRef} style={{ background: currentTheme?.chartBgColor }}>
-      <ConfigContext.Provider value={{deepConfig, setDeepConfig, appHeight, setAppHeight, mainTheme, setMainTheme, currentTheme}}>
+      <ConfigContext.Provider value={{deepConfig, setDeepConfig, appHeight, setAppHeight, mainTheme, setMainTheme, currentTheme, setCurrentTheme}}>
         <Left
           deepConfig={deepConfig}
         />
