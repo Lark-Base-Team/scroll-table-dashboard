@@ -100,6 +100,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
 
   const getColumns = () => { // 获取列数据
     return show_columns(deepConfig).map(d => {
+      console.log(111111113333, d)
       return {
         title: d?.name,
         dataIndex: d?.id,

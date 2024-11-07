@@ -72,8 +72,8 @@ const Cell = (props) => {
         return setRenderText(text || '')
       case 2: // 数字  string
         try {
-          const lookupFieldId = col.property.refFieldId
-          const quoteTableId = col.property.refTableId
+          const lookupFieldId = col.property?.refFieldId
+          const quoteTableId = col.property?.refTableId
           const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
           const numberField = await table.getField(lookupFieldId || col.id)
           const numberFormatter = await numberField.getFormatter()
@@ -110,7 +110,7 @@ const Cell = (props) => {
           return setRenderText('')
         }
       case 7: // 复选框  checkbox
-        const list = text.split('，').map(d => JSON.parse(d))
+        const list = typeof text === 'string' ? text?.split('，').map(d => JSON.parse(d)) : [text]
         console.log('checked: ', list)
         const domList = list.map(d =>  <Checkbox style={{display: 'inline'}} checked={d}/>)
         return setRenderText(
@@ -119,6 +119,7 @@ const Cell = (props) => {
       case 11: // 人员  string
       case 1003: // 创建人  string
       case 1004: // 修改人  string
+        console.log('人员:', type, text)
         const str = text?.map(d => d?.name).join('，')
         return setRenderText(str)
       case 13: // 电话  string
@@ -131,8 +132,8 @@ const Cell = (props) => {
         )
       case 17: // 附件  Attachment
         try {
-          const lookupFieldId = col.property.refFieldId
-          const quoteTableId = col.property.refTableId
+          const lookupFieldId = col.property?.refFieldId
+          const quoteTableId = col.property?.refTableId
           const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
 
           const tokenList = text?.map(d => d.token)
@@ -151,7 +152,7 @@ const Cell = (props) => {
           }
         } catch (e) {
           // Toast.error("服务端获取附件数据出错");
-          return setRenderText('333')
+          return setRenderText('')
         }
       case 18: // 单向关联
         try {
@@ -162,12 +163,11 @@ const Cell = (props) => {
         }
       case 19: // 查找引用
         try {
-          const lookupFieldId = col.property.refFieldId
-          const quoteTableId = col.property.refTableId
+          const lookupFieldId = col.property?.refFieldId
+          const quoteTableId = col.property?.refTableId
           const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : tableComponent
           const lookupField = await table.getField(lookupFieldId)
           const cellType = await lookupField.getType()
-          console.log(111111111, cellType)
           return getElementByType(col, text, cellType)
         } catch (e) {
           return setRenderText('')

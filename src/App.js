@@ -73,7 +73,6 @@ function App() {
     // });
 
     const theme = await dashboard.getTheme();
-    console.log(111111111, theme)
     setCurrentTheme(theme);
     setTheme(theme)
     // setThemeConfig(theme);
