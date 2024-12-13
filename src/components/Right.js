@@ -24,9 +24,8 @@ import {
 import { cloneDeep } from "@douyinfe/semi-ui/lib/es/_utils";
 import ConfigContext from "./ConfigContext";
 import { bitable, dashboard } from "@lark-base-open/js-sdk";
-import FilterInput from './FilterInput'
 import '../style/right.scss'
-import cell from "./Cell";
+import { Banner } from '@douyinfe/semi-ui';
 
 const App = forwardRef((props, ref) => {
   const { deepConfig, setDeepConfig } = useContext(ConfigContext)
@@ -372,8 +371,11 @@ const App = forwardRef((props, ref) => {
     })
   }, [allFields, deepConfig.filters]);
 
+  const bannerTips = '受限于浏览器性能和插件的数据处理能力，推荐展示小于 5000 条的数据，超出上限请设置筛选后展示。';
+
   return (
     <div className="right-box">
+      <Banner fullMode={false} type="warning" closeIcon={null} description={bannerTips} />
       <Form ref={formRef} style={{overflow: "auto", height: "100%"}}>
         <Form.Select
           field="data_sorce"
