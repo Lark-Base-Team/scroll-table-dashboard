@@ -18,7 +18,7 @@ export const scroll_computed = (config) => {
 } // 实时计算当前需要滚动的行数
 
 export const show_columns = (config) => {
-  return my_plat(config) === 'pc'
+  return my_plat() === 'pc'
     ? config.show_fields
     : config.show_fields.filter(d => d.is_phone_filed)
 }

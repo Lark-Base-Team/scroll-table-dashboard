@@ -1,5 +1,5 @@
-import React, {useRef, useState, useEffect, forwardRef, useContext} from "react";
-import {Table, Toast} from "@douyinfe/semi-ui";
+import React, { useRef, useState, useEffect, forwardRef, useContext, useLayoutEffect } from "react";
+import { Table, Toast } from "@douyinfe/semi-ui";
 import {
   getSize,
   getDatas,
@@ -7,41 +7,113 @@ import {
   initColumns, getDataSource,
 } from "./const";
 import ConfigContext from "./ConfigContext";
-import {bitable, dashboard} from "@lark-base-open/js-sdk";
+import { bitable, dashboard } from "@lark-base-open/js-sdk";
 import Cell from "./Cell";
-import {cloneDeep} from "@douyinfe/semi-ui/lib/es/_utils";
-import {line_computed, my_plat, scroll_computed, show_columns} from "../utils/computed";
+import { cloneDeep } from "@douyinfe/semi-ui/lib/es/_utils";
+import { line_computed, my_plat, scroll_computed, show_columns } from "../utils/computed";
 // import { includesFilter, notIncludesFilter, dateInFilter } from '../utils/filter'
 
 let scrollTimer = null
 
 const VirtualizedFixedDemo = forwardRef((props, ref) => {
-  const {deepConfig, setDeepConfig, appHeight, dataRange, setDataRange, mainTheme, currentTheme} = useContext(ConfigContext)
+  const ctx = useContext(ConfigContext)
+  const { deepConfig, formConfig, appHeight, dataRange, setDataRange, mainTheme, currentTheme } = ctx
   let virtualizedListRef = useRef();
   const scrollPanel = useRef()
   const [scroll, setScroll] = useState({});
   const [virtualized, setVirtualized] = useState({});
+  const [itemSize, setItemSize] = useState();
+
+  /** 渲染用的全部数据
+   * {
+   * key: recordId,
+   * index: 从1开始的索引
+   * }[]
+   */
   const [tableDatas, setTableDatas] = useState([]);
-  const [tableComponent, setTableComponent] = useState()
+
+  console.log('===tableDatas', tableDatas);
+  const [tableComponent, setTableComponent] = useState();
+
+  /** 当前源数据表信息 */
+  const [dataInfo, setDataInfo] = useState({
+    /** table实例 */
+    table: {},
+    tableId: '',
+    /** viewId */
+    viewId: '',
+  });
+
+
+  /** 最新的一页信息 */
+  const [currentPageData, setCurrentPageData] = useState({
+    records: [],
+    hasMore: true,
+    total: 99999,
+    pageToken: undefined,
+  });
+
+  console.log('===props', props)
+  /** 源数据表变化，重置数据 */
+  useEffect(() => {
+    const tableId = formConfig.data_sorce;
+    const viewId = formConfig.data_range;
+    async function update() {
+      if (!tableId || !viewId) {
+        return;
+      }
+      const table = await bitable.base.getTableById(tableId);
+      setDataInfo({
+        table,
+        tableId,
+        viewId,
+      });
+      setTableDatas([]);
+      const records = await table.getRecordsByPage({
+        viewId,
+        // stringValue:true,
+      });
+
+      setCurrentPageData(records);
+    }
+    update();
+  }, [formConfig.data_sorce, formConfig.data_range]);
+
+  useLayoutEffect(() => {
+    const records = currentPageData.records;
+    const newData = records.map((r, _index) => {
+      const index = tableDatas.length + _index + 1;
+      return {
+        key: r.recordId,
+        ...r.fields,
+        index,
+      }
+    });
+
+    setTableDatas(tableDatas.concat(newData));
+  }, [currentPageData])
+
+
+
 
   // commonInfo.virtualizedListRef = virtualizedListRef;
-  commonInfo.deepConfig = deepConfig;
+  // commonInfo.deepConfig = deepConfig;
 
   useEffect(() => {
-    if (deepConfig.data_sorce) {
-      getTableDataById(deepConfig.data_sorce)
+    if (formConfig.data_sorce) {
+      getTableDataById(formConfig.data_sorce)
     }
 
-    document.getElementById('scroll-table-container').addEventListener('wheel', function(event) {
+    document.getElementById('scroll-table-container').addEventListener('wheel', function (event) {
       event.preventDefault();
     }, { passive: false });
   }, []);
 
   useEffect(() => {
-    if (deepConfig.data_sorce) {
-      getTableDataById(deepConfig.data_sorce)
+    if (formConfig.data_sorce) {
+      getTableDataById(formConfig.data_sorce)
     }
-  }, [deepConfig, deepConfig.data_sorce, dataRange])
+  }, [formConfig, formConfig.data_sorce, dataRange])
 
   useEffect(() => {
     resizeByHeight()
@@ -49,17 +121,15 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
 
   const resizeByHeight = () => {
     if (appHeight) {
-      getSize(appHeight, tableDatas.length).then((res) => {
+      getSize(appHeight, tableDatas.length, formConfig).then((res) => {
         setScroll({ y: res.y, x: res.x });
-        setVirtualized({
-          itemSize: res.itemSize,
-        });
+        setItemSize(res.itemSize);
         const tbody = document.querySelectorAll('.semi-table-tbody')
         if (tbody && tbody.length) {
           tbody.forEach((d, i) => {
             d.querySelectorAll('.semi-table-row').forEach((ele, i) => {
               ele.style.setProperty('height', `${res.itemSize}px`)
-              ele.style.setProperty('top', `${i * res.itemSize }px`)
+              ele.style.setProperty('top', `${i * res.itemSize}px`)
             })
           })
         }
@@ -70,17 +140,15 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
 
   const resizeByRow = (tableLength) => {
     if (appHeight) {
-      getSize(appHeight, tableLength).then((res) => {
+      getSize(appHeight, tableLength, formConfig).then((res) => {
         setScroll({ y: res.y, x: res.x });
-        setVirtualized({
-          itemSize: res.itemSize,
-        });
+        setItemSize(res.itemSize);
         const tbody = document.querySelectorAll('.semi-table-tbody')
         if (tbody && tbody.length) {
           tbody.forEach((d, i) => {
             d.querySelectorAll('.semi-table-row').forEach((ele, i) => {
               ele.style.setProperty('height', `${res.itemSize}px`)
-              ele.style.setProperty('top', `${i * res.itemSize }px`)
+              ele.style.setProperty('top', `${i * res.itemSize}px`)
             })
           })
         }
@@ -90,24 +158,25 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
   }
 
   const getLineComputed = () => { // 根据设备获取行数
-    return my_plat(deepConfig) === 'pc'
-      ? deepConfig.pc_line
-      : deepConfig.phone_line
+    return my_plat() === 'pc'
+      ? formConfig.pc_line
+      : formConfig.phone_line
     // return deepConfig.my_plat() === 'pc'
-    //   ? deepConfig.pc_line
-    //   : deepConfig.phone_line
+    //   ? formConfig.pc_line
+    //   : formConfig.phone_line
   }
 
   const getColumns = () => { // 获取列数据
-    return show_columns(deepConfig).map(d => {
-      console.log(111111113333, d)
+    return show_columns(formConfig).map(d => {
+
       return {
         title: d?.name,
         dataIndex: d?.id,
         type: d?.type,
         render: (text, row, index) => {
+          // TODO 这里设置斑马条纹之类的
           return (
-            <ConfigContext.Provider value={{tableComponent, setTableComponent, appHeight, deepConfig}}>
+            <ConfigContext.Provider value={{ tableComponent, setTableComponent, appHeight, deepConfig, formConfig }}>
               <Cell
                 col={d}
                 row={row}
@@ -123,6 +192,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
   }
 
   const getTableDataById = async id => { // 根据id获取列表数据
+    return;
     const table = await bitable.base.getTable(id)
     setTableComponent(table)
     getDatas(table).then(res => {
@@ -139,7 +209,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
         // result.length = length
       }
       result = result.map((d, i) => {
-        return Object.assign(cloneDeep(d), {
+        return Object.assign(cloneDeep(d ?? {}), {
           key: Math.random()
         })
       })
@@ -170,39 +240,39 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
   }
 
   const handleRow = (row, index) => {
-    if (deepConfig.is_line_height && deepConfig.is_zebra) { // 设置高亮并且设置斑马纹 高亮优先级高于斑马纹
-      if (deepConfig.line_height_row === 'first') {
+    if (formConfig.is_line_height && formConfig.is_zebra) { // 设置高亮并且设置斑马纹 高亮优先级高于斑马纹
+      if (formConfig.line_height_row === 'first') {
         if (currentTheme?.theme === 'DARK') {
           return index === 0
             ? {
               style: {
-                background: deepConfig.line_hgith_dark_bg
+                background: formConfig.line_hgith_dark_bg
               }
             }
             : {
               style: {
                 background: index % 2 === 0
-                  ? deepConfig.zebra_odd_dark_bg
-                  : deepConfig.zebra_even_dark_bg
+                  ? formConfig.zebra_odd_dark_bg
+                  : formConfig.zebra_even_dark_bg
               }
             }
         } else {
           return index === 0
             ? {
               style: {
-                background: deepConfig.line_hgith_light_bg
+                background: formConfig.line_hgith_light_bg
               }
             }
             : {
               style: {
                 background: index % 2 === 0
-                  ? deepConfig.zebra_odd_light_bg
-                  : deepConfig.zebra_even_light_bg
+                  ? formConfig.zebra_odd_light_bg
+                  : formConfig.zebra_even_light_bg
               }
             }
         }
       } else {
-        let lineList = deepConfig.appoint_line_heights
+        let lineList = formConfig.appoint_line_heights
           .replaceAll('，', ',')
           .split(',')
         const formatErr = lineList.some(d => isNaN(d))
@@ -215,15 +285,15 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
           if (lineList.includes(index + 1)) {
             return {
               style: {
-                background: deepConfig.line_hgith_dark_bg
+                background: formConfig.line_hgith_dark_bg
               }
             }
           } else {
             return {
               style: {
                 background: index % 2 === 0
-                  ? deepConfig.zebra_odd_dark_bg
-                  : deepConfig.zebra_even_dark_bg
+                  ? formConfig.zebra_odd_dark_bg
+                  : formConfig.zebra_even_dark_bg
               }
             }
           }
@@ -231,27 +301,27 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
           if (lineList.includes(index + 1)) {
             return {
               style: {
-                background: deepConfig.line_hgith_light_bg
+                background: formConfig.line_hgith_light_bg
               }
             }
           } else {
             return {
               style: {
                 background: index % 2 === 0
-                  ? deepConfig.zebra_odd_light_bg
-                  : deepConfig.zebra_even_light_bg
+                  ? formConfig.zebra_odd_light_bg
+                  : formConfig.zebra_even_light_bg
               }
             }
           }
         }
       }
-    } else if (deepConfig.is_line_height && !deepConfig.is_zebra) { // 只设置高亮
-      if (deepConfig.line_height_row === 'first') { //首行高亮
+    } else if (formConfig.is_line_height && !formConfig.is_zebra) { // 只设置高亮
+      if (formConfig.line_height_row === 'first') { //首行高亮
         if (currentTheme?.theme === 'DARK') {
           return index === 0
             ? {
               style: {
-                background: deepConfig.line_hgith_dark_bg
+                background: formConfig.line_hgith_dark_bg
               }
             }
             : {
@@ -263,7 +333,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
           return index === 0
             ? {
               style: {
-                background: deepConfig.line_hgith_light_bg
+                background: formConfig.line_hgith_light_bg
               }
             }
             : {
@@ -273,7 +343,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
             }
         }
       } else {
-        let lineList = deepConfig.appoint_line_heights
+        let lineList = formConfig.appoint_line_heights
           .replaceAll('，', ',')
           .split(',')
         const formatErr = lineList.some(d => isNaN(d))
@@ -290,7 +360,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
           if (lineList.includes(index + 1)) {
             return {
               style: {
-                background: deepConfig.line_hgith_dark_bg
+                background: formConfig.line_hgith_dark_bg
               }
             }
           } else {
@@ -304,35 +374,35 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
           if (lineList.includes(index + 1)) {
             return {
               style: {
-                background: deepConfig.line_hgith_light_bg
+                background: formConfig.line_hgith_light_bg
               }
             }
           } else {
             return {
               style: {
                 background: index % 2 === 0
-                  ? deepConfig.zebra_odd_light_bg
-                  : deepConfig.zebra_even_light_bg
+                  ? formConfig.zebra_odd_light_bg
+                  : formConfig.zebra_even_light_bg
               }
             }
           }
         }
       }
-    } else if (!deepConfig.is_line_height && deepConfig.is_zebra) { // 只设置斑马纹
+    } else if (!formConfig.is_line_height && formConfig.is_zebra) { // 只设置斑马纹
       if (currentTheme?.theme === 'DARK') {
         return {
           style: {
             background: index % 2 === 0
-              ? deepConfig.zebra_odd_dark_bg
-              : deepConfig.zebra_even_dark_bg
+              ? formConfig.zebra_odd_dark_bg
+              : formConfig.zebra_even_dark_bg
           }
         }
       } else {
         return {
           style: {
             background: index % 2 === 0
-              ? deepConfig.zebra_odd_light_bg
-              : deepConfig.zebra_even_light_bg
+              ? formConfig.zebra_odd_light_bg
+              : formConfig.zebra_even_light_bg
           }
         }
       }
@@ -347,12 +417,14 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
 
   let rowIndex = 0
   const initScroll = (rowHeight, tableLength) => {
+    debugger;
+    return;
     clearInterval(scrollTimer)
     scrollTimer = null
     rowIndex = 0
     scrollPanel.current.scrollTop = rowIndex * rowHeight
 
-    if (deepConfig.scroll_method === 'line') {
+    if (formConfig.scroll_method === 'line') {
       const length = tableLength || tableDatas.length
       if (!scrollTimer) {
         scrollTimer = setInterval(() => {
@@ -360,15 +432,15 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
             rowIndex = 0
             scrollPanel.current.style.scrollBehavior = ''
             scrollPanel.current.scrollTop = rowIndex * rowHeight
-            rowIndex ++
+            rowIndex++
             scrollPanel.current.style.scrollBehavior = 'smooth'
             scrollPanel.current.scrollTop = rowIndex * rowHeight
           } else {
-            rowIndex ++
+            rowIndex++
             scrollPanel.current.style.scrollBehavior = 'smooth'
             scrollPanel.current.scrollTop = rowIndex * rowHeight
           }
-        }, deepConfig.scroll_time * 1000)
+        }, formConfig.scroll_time * 1000)
       }
     } else {
       const length = tableLength || tableDatas.length
@@ -378,30 +450,87 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
             rowIndex = 0
             scrollPanel.current.style.scrollBehavior = ''
             scrollPanel.current.scrollTop = rowIndex * rowHeight
-            rowIndex += line_computed(commonInfo.deepConfig)
+            rowIndex += line_computed(formConfig)
             scrollPanel.current.style.scrollBehavior = 'smooth'
             scrollPanel.current.scrollTop = rowIndex * rowHeight
-          } else if (length - rowIndex <= line_computed(commonInfo.deepConfig)) {
+          } else if (length - rowIndex <= line_computed(formConfig)) {
             rowIndex += length - rowIndex
             scrollPanel.current.style.scrollBehavior = 'smooth'
             scrollPanel.current.scrollTop = rowIndex * rowHeight
           } else {
-            rowIndex += line_computed(commonInfo.deepConfig)
+            rowIndex += line_computed(formConfig)
             scrollPanel.current.style.scrollBehavior = 'smooth'
             scrollPanel.current.scrollTop = rowIndex * rowHeight
           }
-        }, deepConfig.scroll_time * 1000)
+        }, formConfig.scroll_time * 1000)
       }
     }
   }
+
+  /*
+  
+  // TODO 可以虚拟滚动
+[.semi-table-body].scrollBy({
+  top: 100,
+  behavior: "smooth",
+});
+  
+  */
+
+  async function loadMore() {
+    const records = await dataInfo.table.getRecordsByPage({
+      viewId: formConfig.data_range,
+      // stringValue:true,
+      pageToken: currentPageData.pageToken,
+    });
+    setTableDatas(records);
+  }
+
+  return <div id="scroll-table-container">
+    <div className="scroll-panel" ref={scrollPanel}>
+      <Table
+        id="scroll-table-body"
+        virtualized={{
+          itemSize,
+          onScroll: ({ scrollDirection, scrollOffset, scrollUpdateWasRequested }) => {
+            if (
+              scrollDirection === 'forward' &&
+              scrollOffset >= (tableDatas.length - Math.ceil(scroll.y / itemSize) * 1.5) * itemSize &&
+              !scrollUpdateWasRequested
+            ) {
+              loadMore();
+            }
+          },
+        }}
+        resizable={formConfig.is_allocation}
+        pagination={false}
+        columns={getColumns()}
+        dataSource={tableDatas}
+        scroll={scroll}
+        onRow={handleRow}
+        getVirtualizedListRef={(ref) => (virtualizedListRef = ref)}
+      />
+      {/* <Table
+          id="scroll-table-body-copy"
+          virtualized={virtualized}
+          resizable={formConfig.is_allocation}
+          pagination={false}
+          columns={getColumns()}
+          dataSource={tableDatas}
+          scroll={scroll}
+          onRow={handleRow}
+          getVirtualizedListRef={(ref) => (virtualizedListRef = ref)}
+        /> */}
+    </div>
+  </div>
 
   return (
     <div id="scroll-table-container">
       <Table
         id="scroll-table-header"
-        style={{whiteSpace: "nowrap", textOverflow: "ellipsis" }}
+        style={{ whiteSpace: "nowrap", textOverflow: "ellipsis" }}
         virtualized={virtualized}
-        resizable={deepConfig.is_allocation}
+        resizable={formConfig.is_allocation}
         pagination={false}
         columns={getColumns()}
         dataSource={tableDatas}
@@ -412,8 +541,19 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
       <div className="scroll-panel" ref={scrollPanel}>
         <Table
           id="scroll-table-body"
-          virtualized={virtualized}
-          resizable={deepConfig.is_allocation}
+          virtualized={{
+            itemSize,
+            onScroll: ({ scrollDirection, scrollOffset, scrollUpdateWasRequested }) => {
+              if (
+                scrollDirection === 'forward' &&
+                scrollOffset >= (tableDatas.length - Math.ceil(scroll.y / itemSize) * 1.5) * itemSize &&
+                !scrollUpdateWasRequested
+              ) {
+                loadMore();
+              }
+            },
+          }}
+          resizable={formConfig.is_allocation}
           pagination={false}
           columns={getColumns()}
           dataSource={tableDatas}
@@ -421,17 +561,17 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
           onRow={handleRow}
           getVirtualizedListRef={(ref) => (virtualizedListRef = ref)}
         />
-        <Table
+        {/* <Table
           id="scroll-table-body-copy"
           virtualized={virtualized}
-          resizable={deepConfig.is_allocation}
+          resizable={formConfig.is_allocation}
           pagination={false}
           columns={getColumns()}
           dataSource={tableDatas}
           scroll={scroll}
           onRow={handleRow}
           getVirtualizedListRef={(ref) => (virtualizedListRef = ref)}
-        />
+        /> */}
       </div>
     </div>
   );

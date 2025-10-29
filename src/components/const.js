@@ -90,6 +90,8 @@ const getTableData = async (table, res, params, times = 0) => {
 
 // TODO 获取数据
 export function getDatas(table) {
+  debugger;
+  return;
   return new Promise(async (resolve, reject) => {
     const { data_range } = commonInfo.deepConfig;
     const { formRef } = commonInfo
@@ -131,6 +133,7 @@ export function getDatas(table) {
 // 处理滚动
 let scrollTimer;
 export function initScroll() {
+  debugger;
   const { virtualizedListRef } = commonInfo;
   const { scroll_time } = commonInfo.deepConfig;
   let scrollIndex = 0;
@@ -142,14 +145,14 @@ export function initScroll() {
 }
 
 // 拿到尺寸
-export function getSize(appHeight, rowLength = 1) {
+export function getSize(appHeight, rowLength = 1, formConfig = {}) {
   return new Promise((resolve) => {
     const state = dashboard.state
     setTimeout(() => {
       const baseHeight = appHeight - 40
       const itemSize = state === 'Create' || state === 'Config'
-        ? baseHeight / line_computed(commonInfo.deepConfig)
-        : (baseHeight / line_computed(commonInfo.deepConfig))
+        ? baseHeight / line_computed(formConfig)
+        : (baseHeight / line_computed(formConfig))
       const tbody = document.querySelector('.semi-table-tbody')
       resolve({
         x: "100%",
@@ -161,7 +164,8 @@ export function getSize(appHeight, rowLength = 1) {
 }
 
 // 数据源改变，获取数据范围
-export async function changeSource(value, firstLoadFlag = false) {
+export async function changeSource(value, firstLoadFlag = false, formConfig = {}) {
+  debugger;
   return new Promise(async (resolve, reject) => {
     const { deepConfig, setDeepConfig, formRef, setDataRange } = commonInfo;
     deepConfig.data_sorce = value;
@@ -193,6 +197,7 @@ export async function changeSource(value, firstLoadFlag = false) {
 
 // 重新拉取所有字段
 export async function getAllFields(value, firstLoadFlag = false) {
+  debugger;
   return new Promise(async (resolve, reject) => {
     const { deepConfig, setDeepConfig } = commonInfo;
     deepConfig.data_range = value;
@@ -229,6 +234,7 @@ export async function getAllFields(value, firstLoadFlag = false) {
 
 // 添加字段
 export function addField(id) {
+  debugger;
   const { deepConfig, setDeepConfig } = commonInfo;
   const { all_fields, show_fields } = deepConfig;
   const temp = cloneDeep(show_fields)

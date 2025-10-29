@@ -16,7 +16,7 @@ import {bitable} from "@lark-base-open/js-sdk";
 
 const Cell = (props) => {
   const { col, row, index, text } = props
-  const {tableComponent, setTableComponent, appHeight, deepConfig} = useContext(ConfigContext)
+  const {tableComponent, setTableComponent, appHeight, formConfig} = useContext(ConfigContext)
   const [renderText, setRenderText] = useState('')
   const [scrollFlag, setScrollFlag] = useState(false)
   const cellRef = useRef()
@@ -231,12 +231,12 @@ const Cell = (props) => {
   }
 
   const setTextScroll = () => {
-    if (deepConfig.overflow_ellipsis) {
+    if (formConfig.overflow_ellipsis) {
       const cellWidth = cellRef.current.clientWidth
       const textWidth = textRef.current.clientWidth
       if (textWidth > cellWidth) {
         setScrollFlag(true)
-        const speed = deepConfig.text_speed
+        const speed = formConfig.text_speed
         const timeout = 1000 / speed
         let i = 0
         timer.current = setInterval(() => {
@@ -259,7 +259,7 @@ const Cell = (props) => {
       <p className="inline-flex" ref={textRef} style={{width: 'fit-content'}}>
         {renderText}
       </p>
-      {deepConfig.overflow_ellipsis && scrollFlag
+      {formConfig.overflow_ellipsis && scrollFlag
         && (
           <p className="inline-block pl-10" style={{width: 'fit-content'}}>
             {renderText}

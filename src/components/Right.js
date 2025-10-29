@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, forwardRef, useContext } from "react";
+import React, { useEffect, useState, useRef, forwardRef, useContext, useImperativeHandle } from "react";
 import {
   Select,
   Form,
@@ -28,8 +28,8 @@ import '../style/right.scss'
 import { Banner } from '@douyinfe/semi-ui';
 
 const App = forwardRef((props, ref) => {
-  const { deepConfig, setDeepConfig } = useContext(ConfigContext)
-  const { dataSource, allFields } = props; // 全局配置
+  const { deepConfig, setDeepConfig, formConfig, setFormConfig } = useContext(ConfigContext)
+  const { dataSource, allFields, currentFieldMetaList, currentViewMetaList  } = props; // 全局配置
   const formRef = useRef(); // form组件
   const [dataRange, setDataRange] = useState([]); // 数据范围下拉
   const [allField, setAllField] = useState([]); // 选择字段下拉
@@ -37,10 +37,16 @@ const App = forwardRef((props, ref) => {
   const [showAddFilter, setShowAddFilter] = useState(false); //设置添加筛选条件下拉
   const [filterList, setFilterList] = useState([]) // 筛选条件列表
   const [filterData, setFilterData] = useState({}) // 新增筛选条件对象
-  commonInfo.deepConfig = deepConfig;
-  commonInfo.setDeepConfig = setDeepConfig;
+  // commonInfo.deepConfig = deepConfig;
+  // commonInfo.setDeepConfig = setDeepConfig;
   commonInfo.formRef = formRef;
-  commonInfo.setDataRange = setDataRange;
+  // commonInfo.setDataRange = setDataRange;
+
+  useImperativeHandle(ref,()=>({
+    formRef,
+  }),[])
+
+  const [loading, setLoading] = useState(false);
 
   const filterCondition = [
     {
@@ -78,16 +84,27 @@ const App = forwardRef((props, ref) => {
   ]
   // 修改数据源
   const onChangeSource = async (value) => {
-    await changeSource(value);
-    const temp = cloneDeep(deepConfig)
-    setDeepConfig(temp)
+    setFormConfig({
+      ...formConfig,
+      data_sorce: value,
+    });
+    return;
+
+    // await changeSource(value);
+    // const temp = cloneDeep(deepConfig)
+    // setDeepConfig(temp)
   }
 
   // 修改数据范围
   const onChangeRange = async (value) => {
-    await getAllFields(value);
-    const temp = cloneDeep(deepConfig)
-    setDeepConfig(temp)
+    setFormConfig({
+      ...formConfig,
+      data_range: value,
+    })
+    return;
+    // await getAllFields(value);
+    // const temp = cloneDeep(deepConfig)
+    // setDeepConfig(temp)
   }
 
   /**
@@ -100,31 +117,34 @@ const App = forwardRef((props, ref) => {
    * @param {FieldType} item.type 对象类型
    */
   const handleDelete = item => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.show_fields = temp.show_fields.filter(d => d.id !== item.id);
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 选择下拉添加字段
   function onAddField(id) {
-    const temp = cloneDeep(deepConfig)
-    temp.show_fields = temp.show_fields.concat(deepConfig.all_fields?.find(d => d.id === id))
-    setDeepConfig(temp)
+    const temp = cloneDeep(formConfig)
+    temp.show_fields = temp.show_fields.concat({
+      id,
+      mob:false,
+    })
+    setFormConfig(temp)
     setShowAddField(false)
   }
 
   // 选择筛选字段
-  const onAddFilter = (id) => {
-    setFilterData({
-      column: {
-        id,
-        name: deepConfig.all_fields?.find(d => d.id === id).name
-      },
-      type: filterList?.find(d => d.value === id).type,
-      condition: '',
-      value: ''
-    })
-  }
+  // const onAddFilter = (id) => {
+  //   setFilterData({
+  //     column: {
+  //       id,
+  //       name: deepConfig.all_fields?.find(d => d.id === id).name
+  //     },
+  //     type: filterList?.find(d => d.value === id).type,
+  //     condition: '',
+  //     value: ''
+  //   })
+  // }
 
   // 筛选条件修改
   const onConditionChange = (value) => {
@@ -142,234 +162,243 @@ const App = forwardRef((props, ref) => {
 
   // 切换显示隐藏移动端
   const handlePhoneToggle = item => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     const result = temp.show_fields.map(d => {
       if (d.id === item.id) {
-        d.is_phone_filed = !d.is_phone_filed
+        d.mob = !d.mob
       }
       return d
     })
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改桌面端行数
   const handlePcLineChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.pc_line = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改移动端行数
   const handlePhoneLineChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.phone_line = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改滚动模式
   const handleScrollMethodChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.scroll_method = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改滚动间隔
   const handleScrollTimeChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.scroll_time = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改高亮状态
   const handleLineHeightChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.is_line_height = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改高亮行
   const handleLineHeightRowChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.line_height_row = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改高亮行数
   const handleAppointLineHeightChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.appoint_line_heights = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改亮色背景
   const handleLightBgChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.line_hgith_light_bg = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改深色背景
   const handleDarkBgChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.line_hgith_dark_bg = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改文本滚动开关
   const handleEllipsisChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.overflow_ellipsis = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改文本滚动速率
   const handleTextSpeedChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.text_speed = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改斑马纹开关
   const handleIsZebraChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.is_zebra = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改斑马纹奇数行浅色背景
   const handleZebraOddLightBgChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.zebra_odd_light_bg = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改斑马纹奇数行深色背景
   const handleZebraOddDarkBgChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.zebra_odd_dark_bg = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改斑马纹偶数行浅色背景
   const handleZebraEvenLightBgChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.zebra_even_light_bg = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 修改斑马纹偶数行深色背景
   const handleZebraEvenDarkBgChange = value => {
-    const temp = cloneDeep(deepConfig)
+    const temp = cloneDeep(formConfig)
     temp.zebra_even_dark_bg = value
-    setDeepConfig(temp)
+    setFormConfig(temp)
   }
 
   // 添加筛选条件
-  const handleShowAddFilter = () => {
-    setShowAddFilter(true)
-    setFilterData({
-      // column: deepConfig.all_fields?.find(d => d.id === filterList[0].value),
-      // type: filterList[0].type,
-      column: {},
-      type: '',
-      condition: '',
-      value: ''
-    })
-  }
+  // const handleShowAddFilter = () => {
+  //   setShowAddFilter(true)
+  //   setFilterData({
+  //     // column: deepConfig.all_fields?.find(d => d.id === filterList[0].value),
+  //     // type: filterList[0].type,
+  //     column: {},
+  //     type: '',
+  //     condition: '',
+  //     value: ''
+  //   })
+  // }
 
-  const handleAddFilter = () => {
-    if (!filterData.column.id || !filterData.condition) {
-      return Toast.error("请填写筛选条件");
-    }
-    if ([5, 1001, 1002].includes(filterData.type) && !filterData.value) {
-      return Toast.error("请填写筛选条件");
-    }
-    const temp = cloneDeep(deepConfig)
-    temp.filters = temp.filters.concat(filterData)
-    setDeepConfig(temp)
-    setShowAddFilter(false)
-  }
+  // const handleAddFilter = () => {
+  //   if (!filterData.column.id || !filterData.condition) {
+  //     return Toast.error("请填写筛选条件");
+  //   }
+  //   if ([5, 1001, 1002].includes(filterData.type) && !filterData.value) {
+  //     return Toast.error("请填写筛选条件");
+  //   }
+  //   const temp = cloneDeep(deepConfig)
+  //   temp.filters = temp.filters.concat(filterData)
+  //   setDeepConfig(temp)
+  //   setShowAddFilter(false)
+  // }
 
   // 确定添加
   const handleSure = async () => {
     const dataConditions = {
-      tableId: deepConfig.data_sorce,
+      tableId: formConfig.data_sorce,
     }
 
-    deepConfig.all_fields = deepConfig.all_fields.map(d => {
-      return {
-        id: d.id,
-        name: d.name,
-        type: d.type,
-        property: [2, 19].includes(d.type) ? {
-          refFieldId: d.property.refFieldId,
-          refTableId: d.property.refTableId
-        } : null
-      }
-    })
+    // formConfig.all_fields = currentFieldMetaList.all_fields.map(d => {
+    //   return {
+    //     id: d.id,
+    //     name: d.name,
+    //     type: d.type,
+    //     property: [2, 19].includes(d.type) ? {
+    //       refFieldId: d.property.refFieldId,
+    //       refTableId: d.property.refTableId
+    //     } : null
+    //   }
+    // });
+    console.log('=====saveConfig',{
+      dataConditions,
+      customConfig: formConfig
+    });
+    window.__config = {
+      dataConditions,
+      customConfig: formConfig
+    }
+    debugger;
     dashboard.saveConfig({
       dataConditions,
-      customConfig: deepConfig
+      customConfig: formConfig
     })
   }
 
   useEffect(() => {  // 数据初始化
-    const fieldList = allFields?.map(d => {
+    const fieldList = currentFieldMetaList?.map(d => {
       return {
         value: d?.id,
         label: d?.name,
         key: d?.id,
-        disabled: deepConfig.show_fields.some(item => item.id === d.id)
+        disabled: formConfig.show_fields.some(item => item.id === d.id)
       }
-    })
+    }).filter((v)=>!v.disabled);
     setAllField(fieldList)
-  }, [deepConfig.show_fields, allFields]);
+  }, [formConfig.show_fields, currentFieldMetaList]);
 
-  const getActualType = async (col) => {
-    if (col.type === 19) {
-      const lookupFieldId = col.property.refFieldId
-      const quoteTableId = col.property.refTableId
-      const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : null
-      const lookupField = await table?.getField(lookupFieldId)
-      const cellType = await lookupField.getType()
-      return cellType
-    } else {
-      return  col.type
-    }
-  }
+  // const getActualType = async (col) => {
+  //   if (col.type === 19) {
+  //     const lookupFieldId = col.property.refFieldId
+  //     const quoteTableId = col.property.refTableId
+  //     const table = quoteTableId ? await bitable.base.getTable(quoteTableId) : null
+  //     const lookupField = await table?.getField(lookupFieldId)
+  //     const cellType = await lookupField.getType()
+  //     return cellType
+  //   } else {
+  //     return  col.type
+  //   }
+  // }
 
-  const handleDeleteFilter = (item) => {
-    const temp = cloneDeep(deepConfig)
-    temp.filters = temp.filters.filter(d => d.column.id !== item.column.id);
-    setDeepConfig(temp)
-  }
+  // const handleDeleteFilter = (item) => {
+  //   const temp = cloneDeep(deepConfig)
+  //   temp.filters = temp.filters.filter(d => d.column.id !== item.column.id);
+  //   setDeepConfig(temp)
+  // }
 
-  const onFilterTextChange = (val) => {
-    const temp = cloneDeep(deepConfig)
-    temp.filter_text = val
-    setDeepConfig(temp)
-  }
+  // const onFilterTextChange = (val) => {
+  //   const temp = cloneDeep(deepConfig)
+  //   temp.filter_text = val
+  //   setDeepConfig(temp)
+  // }
 
-  const getFilterCondition = () => {
-    return filterCondition.filter(d => d.type.includes(filterData.type))
-  }
+  // const getFilterCondition = () => {
+  //   return filterCondition.filter(d => d.type.includes(filterData.type))
+  // }
 
-  useEffect(() => {
-    const temp = cloneDeep(allFields)
-    Promise.all(temp?.map(async d => {
-      d.actualType = await getActualType(d)
-    })).then(res => {
-      const filter = temp?.filter(d => [5, 7, 1001, 1002].includes(d.actualType) && !deepConfig.filters?.some(item => item.column.id === d.id)).map(d => {
-        return {
-          value: d?.id,
-          label: d?.name,
-          key: d?.id,
-          type: d?.actualType,
-        }
-      })
-      setFilterList(filter)
-    })
-  }, [allFields, deepConfig.filters]);
+  // useEffect(() => {
+  //   const temp = cloneDeep(allFields)
+  //   Promise.all(temp?.map(async d => {
+  //     d.actualType = await getActualType(d)
+  //   })).then(res => {
+  //     const filter = temp?.filter(d => [5, 7, 1001, 1002].includes(d.actualType) && !deepConfig.filters?.some(item => item.column.id === d.id)).map(d => {
+  //       return {
+  //         value: d?.id,
+  //         label: d?.name,
+  //         key: d?.id,
+  //         type: d?.actualType,
+  //       }
+  //     })
+  //     setFilterList(filter)
+  //   })
+  // }, [allFields, deepConfig.filters]);
 
   const bannerTips = '受限于浏览器性能和插件的数据处理能力，推荐展示小于 5000 条的数据，超出上限请设置筛选后展示。';
 
@@ -393,7 +422,7 @@ const App = forwardRef((props, ref) => {
           field="data_range"
           label={{ text: "数据范围" }}
           onChange={onChangeRange}
-          optionList={[{ value: 'all', label: '全部数据', key: 'all' }].concat(dataRange.map(d => {
+          optionList={[{ value: 'all', label: '全部数据', key: 'all' }].concat(currentViewMetaList.map(d => {
             return {
               value: d?.id,
               label: d?.name,
@@ -402,14 +431,21 @@ const App = forwardRef((props, ref) => {
           }))}
         />
         <Form.Slot label={{ text: "字段" }}>
-          {deepConfig.show_fields?.map((item) => (
-            <div key={item.title} className="field-item">
+          {formConfig?.show_fields?.map((v)=>{
+            const meta = currentFieldMetaList.find(m=>m.id===v.id) ?? {};
+
+            return {
+              ...meta,
+              ...v,
+            }
+          }).map((item) => (
+            <div key={item.title+item.id} className="field-item">
               <div className="field-item-title">
                 {["text".includes(item.type)] && <IconMark />}
                 <div style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
               </div>
               <div className="field-item-phone" onClick={() => handlePhoneToggle(item)}>
-                {item.is_phone_filed ? <IconEyeOpened /> : <IconEyeClosed />}
+                {item.mob ? <IconEyeOpened /> : <IconEyeClosed />}
                 移动端
               </div>
               <IconDelete
@@ -422,6 +458,7 @@ const App = forwardRef((props, ref) => {
             theme="borderless"
             type="primary"
             className="field-item-add-btn"
+            disabled={!allField.length}
             onClick={handleShowAddFields}
           >
             <IconPlus />
@@ -567,7 +604,7 @@ const App = forwardRef((props, ref) => {
               <Form.Label text="桌面端" style={{fontSize: "12px"}}></Form.Label>
               <InputNumber
                 min={0}
-                value={deepConfig.pc_line}
+                value={formConfig.pc_line}
                 onChange={handlePcLineChange}
               />
             </div>
@@ -575,7 +612,7 @@ const App = forwardRef((props, ref) => {
               <Form.Label text="移动端" style={{fontSize: "12px"}}></Form.Label>
               <InputNumber
                 min={0}
-                value={deepConfig.phone_line}
+                value={formConfig.phone_line}
                 onChange={handlePhoneLineChange}
               />
             </div>
@@ -587,7 +624,7 @@ const App = forwardRef((props, ref) => {
               <Form.Label text="模式" style={{ fontSize: "12px" }}></Form.Label>
               <Select
                 filter
-                value={deepConfig.scroll_method}
+                value={formConfig.scroll_method}
                 onChange={handleScrollMethodChange}
               >
                 <Select.Option value="line">单行</Select.Option>
@@ -598,7 +635,7 @@ const App = forwardRef((props, ref) => {
               <Form.Label text="间隔" style={{ fontSize: "12px" }}></Form.Label>
               <InputNumber
                 suffix={"s"}
-                value={deepConfig.scroll_time}
+                value={formConfig.scroll_time}
                 onChange={handleScrollTimeChange}
               />
             </div>
@@ -607,25 +644,25 @@ const App = forwardRef((props, ref) => {
         <div className="switch-header">
           <Form.Label text="高亮"></Form.Label>
           <Switch
-            checked={deepConfig.is_line_height}
+            checked={formConfig.is_line_height}
             onChange={handleLineHeightChange} />
         </div>
         {
-          deepConfig.is_line_height &&
+          formConfig.is_line_height &&
           <div className="form-second-box">
             <div className="form-second-box-item">
               <div style={{ width: "100%", display: "flex", flexDirection: "column" }}>
                 <Form.Label text="高亮行" style={{ fontSize: "12px" }}></Form.Label>
                 <div className="line-height-card-box">
                   <div
-                    className={`line-height-card ${deepConfig.line_height_row === 'first' && "line-height-card-active"
+                    className={`line-height-card ${formConfig.line_height_row === 'first' && "line-height-card-active"
                       }`}
                     onClick={() => handleLineHeightRowChange('first')}
                   >
                     <span>首行</span>
                   </div>
                   <div
-                    className={`line-height-card ${deepConfig.line_height_row === 'appoint' && "line-height-card-active"
+                    className={`line-height-card ${formConfig.line_height_row === 'appoint' && "line-height-card-active"
                       }`}
                     onClick={() => handleLineHeightRowChange('appoint')}
                   >
@@ -633,11 +670,11 @@ const App = forwardRef((props, ref) => {
                   </div>
                 </div>
                 {
-                  deepConfig.line_height_row === 'appoint' &&
+                  formConfig.line_height_row === 'appoint' &&
                   <Input
                     className="w-100-25"
                     placeholder="通过逗号分隔，例如：1,3,5"
-                    value={deepConfig.appoint_line_heights}
+                    value={formConfig.appoint_line_heights}
                     onChange={handleAppointLineHeightChange}
                     style={{ marginTop: "10px" }}
                   />
@@ -652,7 +689,7 @@ const App = forwardRef((props, ref) => {
                       type="color"
                       style={{ width: "24px", height: "20" }}
                       id="label-form-1"
-                      value={deepConfig.line_hgith_light_bg}
+                      value={formConfig.line_hgith_light_bg}
                       onChange={e => handleLightBgChange(e.target.value)}
                     />
                   </div>
@@ -662,7 +699,7 @@ const App = forwardRef((props, ref) => {
                       type="color"
                       id="label-form-2"
                       style={{ width: "24px", height: "20" }}
-                      value={deepConfig.line_hgith_dark_bg}
+                      value={formConfig.line_hgith_dark_bg}
                       onChange={e => handleDarkBgChange(e.target.value)}
                     />
                   </div>
@@ -674,18 +711,18 @@ const App = forwardRef((props, ref) => {
         <div className="switch-header">
           <Form.Label text="溢出文本滚动"></Form.Label>
           <Switch
-            checked={deepConfig.overflow_ellipsis}
+            checked={formConfig.overflow_ellipsis}
             onChange={handleEllipsisChange}
           />
         </div>
-        {deepConfig.overflow_ellipsis &&
+        {formConfig.overflow_ellipsis &&
           <div className="form-second-box">
             <div className="form-second-box-item">
               <div style={{ width: "100%", display: "flex", flexDirection: "column" }}>
                 <Form.Label text="速率" style={{ fontSize: "12px" }}></Form.Label>
                 <div className="line-height-color-box w-100">
                   <InputNumber
-                    value={deepConfig.text_speed}
+                    value={formConfig.text_speed}
                     suffix={"px/s"}
                     onChange={handleTextSpeedChange}
                     style={{width: "100%"}}
@@ -698,11 +735,11 @@ const App = forwardRef((props, ref) => {
         <div className="switch-header">
           <Form.Label text="斑马纹"></Form.Label>
           <Switch
-            checked={deepConfig.is_zebra}
+            checked={formConfig.is_zebra}
             onChange={handleIsZebraChange}
           />
         </div>
-        {deepConfig.is_zebra &&
+        {formConfig.is_zebra &&
           <div className="form-second-box">
             <div className="form-second-box-item">
               <div style={{ width: "100%", display: "flex", flexDirection: "column" }}>
@@ -714,7 +751,7 @@ const App = forwardRef((props, ref) => {
                       type="color"
                       style={{ width: "24px", height: "20" }}
                       id="label-form-3"
-                      value={deepConfig.zebra_odd_light_bg}
+                      value={formConfig.zebra_odd_light_bg}
                       onChange={e => handleZebraOddLightBgChange(e.target.value)}
                     />
                   </div>
@@ -724,7 +761,7 @@ const App = forwardRef((props, ref) => {
                       type="color"
                       style={{ width: "24px", height: "20" }}
                       id="label-form-4"
-                      value={deepConfig.zebra_odd_dark_bg}
+                      value={formConfig.zebra_odd_dark_bg}
                       onChange={e => handleZebraOddDarkBgChange(e.target.value)}
                     />
                   </div>
@@ -739,7 +776,7 @@ const App = forwardRef((props, ref) => {
                       type="color"
                       id="label-form-5"
                       style={{ width: "24px", height: "20" }}
-                      value={deepConfig.zebra_even_light_bg}
+                      value={formConfig.zebra_even_light_bg}
                       onChange={e => handleZebraEvenLightBgChange(e.target.value)}
                     />
                   </div>
@@ -749,7 +786,7 @@ const App = forwardRef((props, ref) => {
                       type="color"
                       id="label-form-6"
                       style={{ width: "24px", height: "20" }}
-                      value={deepConfig.zebra_even_dark_bg}
+                      value={formConfig.zebra_even_dark_bg}
                       onChange={e => handleZebraEvenDarkBgChange(e.target.value)}
                     />
                   </div>
