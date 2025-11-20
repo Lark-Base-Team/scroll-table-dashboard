@@ -1,27 +1,28 @@
-import { bitable, dashboard } from "@lark-base-open/js-sdk";
 import { Toast } from "@douyinfe/semi-ui";
 import { line_computed, scroll_computed } from '../utils/computed'
-import app from "../App";
 import {cloneDeep} from "@douyinfe/semi-ui/lib/es/_utils";
-import record from "./config";
+import {getCurrentState} from "../utils/common";
 
 let first_range_id = "";
-const state = dashboard.state
+const state = getCurrentState();
 export const commonInfo = {};
 // 获取数据源
-export function getDataSource(fetchedConfig = null) {
+export function getDataSource(bitable, fetchedConfig = null) {
+  if (!bitable) {
+    return Promise.resolve([]);
+  }
   return new Promise(async (resolve, reject) => {
     try {
       const { deepConfig, setDeepConfig, formRef } = commonInfo;
       const tableList = await bitable.base.getTableMetaList();
       deepConfig.data_sorce = fetchedConfig
         ? fetchedConfig.data_sorce
-        : deepConfig.data_sorce || tableList?.[0]?.id;
+        : tableList?.[0]?.id;
       if (state === 'Config' || state === 'Create') {
-        setDeepConfig(deepConfig);
+        // setDeepConfig(deepConfig);
         formRef.current.formApi.setValue("data_sorce", deepConfig.data_sorce);
       }
-      await changeSource(deepConfig.data_sorce, true);
+      await changeSource(bitable, deepConfig.data_sorce);
       resolve(tableList);
     } catch (err) {
       Toast.error("获取数据源失败");
@@ -144,7 +145,7 @@ export function initScroll() {
 // 拿到尺寸
 export function getSize(appHeight, rowLength = 1) {
   return new Promise((resolve) => {
-    const state = dashboard.state
+    const state = getCurrentState();
     setTimeout(() => {
       const baseHeight = appHeight - 40
       const itemSize = state === 'Create' || state === 'Config'
@@ -161,7 +162,10 @@ export function getSize(appHeight, rowLength = 1) {
 }
 
 // 数据源改变，获取数据范围
-export async function changeSource(value, firstLoadFlag = false) {
+export async function changeSource(bitable, value, firstLoadFlag = false) {
+  if (!bitable) {
+    return Promise.resolve();
+  }
   return new Promise(async (resolve, reject) => {
     const { deepConfig, setDeepConfig, formRef, setDataRange } = commonInfo;
     deepConfig.data_sorce = value;
@@ -181,7 +185,7 @@ export async function changeSource(value, firstLoadFlag = false) {
       if (state === 'Config' || state === 'Create') {
         setDataRange(tables);
       }
-      await getAllFields("all", firstLoadFlag);
+      await getAllFields(bitable, "all", firstLoadFlag);
       resolve()
     } catch (err) {
       Toast.error("获取数据范围失败");
@@ -192,7 +196,10 @@ export async function changeSource(value, firstLoadFlag = false) {
 }
 
 // 重新拉取所有字段
-export async function getAllFields(value, firstLoadFlag = false) {
+export async function getAllFields(bitable, value, firstLoadFlag = false) {
+  if (!bitable) {
+    return Promise.resolve();
+  }
   return new Promise(async (resolve, reject) => {
     const { deepConfig, setDeepConfig } = commonInfo;
     deepConfig.data_range = value;

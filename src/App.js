@@ -5,61 +5,104 @@ import config from "./components/config";
 import {useEffect, useRef, useState} from "react";
 import {commonInfo, getDataSource} from "./components/const";
 import ConfigContext from "./components/ConfigContext";
-import {dashboard, base, bitable} from "@lark-base-open/js-sdk";
-import {my_plat} from "./utils/computed";
+import { useBitableContext } from "./hooks";
+import { getCurrentState } from "./utils/common";
 
 
 function App() {
-  const [deepConfig, setDeepConfig] = useState(config);
+  const [deepConfig, _setDeepConfig] = useState(config);
   const [dataSource, setDataSource] = useState([]); // 数据源下拉
   const [allFields, setAllFields] = useState([]);
   const appRef = useRef()
   const [appHeight, setAppHeight] = useState(0);
   const [mainTheme, setMainTheme] = useState('LIGHT')
   const [currentTheme, setCurrentTheme] = useState();
+  const [inited, setInited] = useState(false);
+  const bitableContext = useBitableContext();
+  const [renderLoading, setRenderLoading] = useState(false);
+  const {
+    bitable,
+  } = bitableContext ?? {};
+  const dashboard = bitable?.dashboard;
+
+  const setDeepConfig = (...args) => {
+    const res = _setDeepConfig(...args);
+    return res;
+  }
+
   const [themeConfig, setThemeConfig] = useState();
 
   commonInfo.appRef = appRef
+  commonInfo.setRenderLoading = setRenderLoading;
 
-  const state = dashboard.state
+
+
+  const state = getCurrentState();
 
   useEffect(() => {
-    getConfig().then(async (config) => {
-      getTheme()
-      getDataSource(config).then((res) => {
-        setDataSource(res)
-        setAllFields(config ? config.all_fields : deepConfig.all_fields)
-      });
-      setAppHeight(appRef.current.offsetHeight)
-      window.addEventListener('resize', () => {
-        setAppHeight(appRef.current.offsetHeight);
-      })
-    })
+    if (!dashboard) {
+      return;
+    }
 
-    if (dashboard.state === 'View' || dashboard.state === 'FullScreen') {
-      dashboard.onDataChange((e) => {
-        getConfig().then(async (config) => {
-          getDataSource(config).then((res) => {
+    let cancelDataChange = null;
+    if (state === 'View' || state === 'FullScreen') {
+      cancelDataChange = dashboard.onDataChange((e) => {
+        getConfig(dashboard).then(async (config) => {
+          getDataSource(bitable, config).then((res) => {
             setDataSource(res)
             setAllFields(config ? config.all_fields : deepConfig.all_fields)
           });
-          setAppHeight(appRef.current.offsetHeight)
-          window.addEventListener('resize', () => {
-            setAppHeight(appRef.current.offsetHeight);
-          })
         })
       })
     }
-  }, []);
-
-  useEffect(() => {
-    dashboard.onThemeChange(theme => {
+    getTheme()
+    const cancel = dashboard.onThemeChange(theme => {
       console.log('??? theme', theme);
       setCurrentTheme(theme.data);
       setTheme(theme.data)
       // updateTheme(theme.data.theme);
     })
-  }, []);
+
+    return () => {
+      cancelDataChange?.();
+      cancel();
+    }
+  }, [dashboard, bitable]);
+
+  useEffect(() => {
+    if (!dashboard || inited) {
+      return;
+    }
+
+    getConfig(dashboard).then(async (config) => {
+      
+      getDataSource(bitable, config).then((res) => {
+        setDataSource(res)
+        setAllFields(config ? config.all_fields : deepConfig.all_fields)
+      });
+      setAppHeight(appRef.current.offsetHeight)
+      
+      setInited(true);
+    })
+    const setH = () => {
+      setAppHeight(appRef.current.offsetHeight);
+    };
+    window.addEventListener('resize', setH)
+
+    return () => {
+      window.removeEventListener('resize', setH)
+    }
+  }, [dashboard, bitable])
+
+  useEffect(() => {
+    if(!inited) {
+      return;
+    }
+    getDataSource(bitable).then((res) => {
+      setDataSource(res)
+      setAllFields(config ? config.all_fields : deepConfig.all_fields)
+    });
+  }, [inited, bitable])
 
   useEffect(() => {
     setAllFields(deepConfig.all_fields)
@@ -71,6 +114,9 @@ function App() {
     // await bitable.bridge.onThemeChange((event) => {
     //   setTheme(event.data.theme)
     // });
+    if (!dashboard) {
+      return;
+    }
 
     const theme = await dashboard.getTheme();
     setCurrentTheme(theme);
@@ -88,7 +134,7 @@ function App() {
     }
   }
 
-  const getConfig = async () => {
+  const getConfig = async (dashboard) => {
     return new Promise(async (resolve, reject) => {
       if (dashboard.state === 'View' || dashboard.state === 'FullScreen' || dashboard.state === 'Config') {
         const config = (await dashboard.getConfig()).customConfig
@@ -105,6 +151,8 @@ function App() {
       <ConfigContext.Provider value={{deepConfig, setDeepConfig, appHeight, setAppHeight, mainTheme, setMainTheme, currentTheme, setCurrentTheme}}>
         <Left
           deepConfig={deepConfig}
+          bitableContext={bitableContext}
+          loading={renderLoading}
         />
       </ConfigContext.Provider>
       { state === 'Config' || state === 'Create'
@@ -113,6 +161,9 @@ function App() {
             <Right
               dataSource={dataSource}
               allFields={allFields}
+              bitableContext={bitableContext}
+              setDataSource={setDataSource}
+              setRenderLoading={setRenderLoading}
             />
           </ConfigContext.Provider>
         )

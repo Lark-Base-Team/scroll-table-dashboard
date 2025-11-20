@@ -1,4 +1,5 @@
 const config = {
+  baseToken: '',
   is_allocation: false, // 是否处于配置状态
   data_sorce: "", //数据源
   data_range: "all", // 数据范围

@@ -111,16 +111,16 @@ const Cell = (props) => {
         }
       case 7: // 复选框  checkbox
         const list = typeof text === 'string' ? text?.split('，').map(d => JSON.parse(d)) : [text]
-        console.log('checked: ', list)
-        const domList = list.map(d =>  <Checkbox style={{display: 'inline'}} checked={d}/>)
+        // console.log('checked: ', list)
+        const domList = list.map?.(d =>  <Checkbox style={{display: 'inline'}} checked={d}/>)
         return setRenderText(
             domList
         )
       case 11: // 人员  string
       case 1003: // 创建人  string
       case 1004: // 修改人  string
-        console.log('人员:', type, text)
-        const str = text?.map(d => d?.name).join('，')
+        // console.log('人员:', type, text)
+        const str = text?.map?.(d => d?.name).join('，')
         return setRenderText(str)
       case 13: // 电话  string
         return setRenderText(text)

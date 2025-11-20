@@ -4,44 +4,54 @@ import {
   getSize,
   getDatas,
   commonInfo,
-  initColumns, getDataSource,
 } from "./const";
 import ConfigContext from "./ConfigContext";
-import {bitable, dashboard} from "@lark-base-open/js-sdk";
 import Cell from "./Cell";
 import {cloneDeep} from "@douyinfe/semi-ui/lib/es/_utils";
 import {line_computed, my_plat, scroll_computed, show_columns} from "../utils/computed";
 // import { includesFilter, notIncludesFilter, dateInFilter } from '../utils/filter'
+import { debounce } from 'lodash-es';
+
+
 
 let scrollTimer = null
 
 const VirtualizedFixedDemo = forwardRef((props, ref) => {
   const {deepConfig, setDeepConfig, appHeight, dataRange, setDataRange, mainTheme, currentTheme} = useContext(ConfigContext)
+  const {
+    bitableContext,
+    renderLoading,
+  } = props;
+
   let virtualizedListRef = useRef();
   const scrollPanel = useRef()
   const [scroll, setScroll] = useState({});
   const [virtualized, setVirtualized] = useState({});
   const [tableDatas, setTableDatas] = useState([]);
   const [tableComponent, setTableComponent] = useState()
+  const {
+    bitable,
+    loading
+  } = bitableContext ?? {};
 
   // commonInfo.virtualizedListRef = virtualizedListRef;
   commonInfo.deepConfig = deepConfig;
 
   useEffect(() => {
-    if (deepConfig.data_sorce) {
+    if (deepConfig.data_sorce && !loading) {
       getTableDataById(deepConfig.data_sorce)
     }
 
     document.getElementById('scroll-table-container').addEventListener('wheel', function(event) {
       event.preventDefault();
     }, { passive: false });
-  }, []);
+  }, [loading]);
 
   useEffect(() => {
-    if (deepConfig.data_sorce) {
+    if (deepConfig.data_sorce && !loading) {
       getTableDataById(deepConfig.data_sorce)
     }
-  }, [deepConfig, deepConfig.data_sorce, dataRange])
+  }, [deepConfig, deepConfig.data_sorce, dataRange, loading])
 
   useEffect(() => {
     resizeByHeight()
@@ -100,7 +110,7 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
 
   const getColumns = () => { // 获取列数据
     return show_columns(deepConfig).map(d => {
-      console.log(111111113333, d)
+      // console.log(111111113333, d)
       return {
         title: d?.name,
         dataIndex: d?.id,
@@ -123,13 +133,16 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
   }
 
   const getTableDataById = async id => { // 根据id获取列表数据
+    if (!bitable) {
+      return setTableDatas([])
+    }
     const table = await bitable.base.getTable(id)
     setTableComponent(table)
     getDatas(table).then(res => {
       const length = getLineComputed()
       let result = new Array(length).fill(0)
       let scrollFlag = false
-      if (res.length < length) {
+      if (res.length && res.length < length) {
         result = result.map((d, i) => {
           return res[i % res.length]
         })
@@ -394,6 +407,8 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
       }
     }
   }
+
+
 
   return (
     <div id="scroll-table-container">

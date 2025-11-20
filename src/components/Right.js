@@ -8,7 +8,6 @@ import {
   Input, Toast,
 } from "@douyinfe/semi-ui";
 import {
-  getDataSource,
   changeSource,
   getAllFields,
   addField,
@@ -21,15 +20,16 @@ import {
   IconDelete,
   IconPlus,
 } from "@douyinfe/semi-icons";
+import { dashboard as sdkDashboard } from "@lark-base-open/js-sdk";
 import { cloneDeep } from "@douyinfe/semi-ui/lib/es/_utils";
 import ConfigContext from "./ConfigContext";
-import { bitable, dashboard } from "@lark-base-open/js-sdk";
 import '../style/right.scss'
 import { Banner } from '@douyinfe/semi-ui';
+import { BaseSelector } from "./BaseSelector";
 
 const App = forwardRef((props, ref) => {
   const { deepConfig, setDeepConfig } = useContext(ConfigContext)
-  const { dataSource, allFields } = props; // 全局配置
+  const { dataSource, allFields, bitableContext, setRenderLoading } = props; // 全局配置
   const formRef = useRef(); // form组件
   const [dataRange, setDataRange] = useState([]); // 数据范围下拉
   const [allField, setAllField] = useState([]); // 选择字段下拉
@@ -37,10 +37,17 @@ const App = forwardRef((props, ref) => {
   const [showAddFilter, setShowAddFilter] = useState(false); //设置添加筛选条件下拉
   const [filterList, setFilterList] = useState([]) // 筛选条件列表
   const [filterData, setFilterData] = useState({}) // 新增筛选条件对象
+  
   commonInfo.deepConfig = deepConfig;
   commonInfo.setDeepConfig = setDeepConfig;
   commonInfo.formRef = formRef;
   commonInfo.setDataRange = setDataRange;
+  const {
+    bitable,
+    baseToken,
+    changeBase
+  } = bitableContext ?? {};
+  const dashboard = bitable?.dashboard;
 
   const filterCondition = [
     {
@@ -76,16 +83,38 @@ const App = forwardRef((props, ref) => {
     //   label: '不为空'
     // }
   ]
+
+  // 修改base
+  const onChangeBase = async (token) => {
+    try {
+      setRenderLoading(true)
+      const bitable = await changeBase(token);
+      deepConfig.baseToken = token;
+      await changeSource(bitable);
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setRenderLoading(false)
+    }
+  }
+  
   // 修改数据源
   const onChangeSource = async (value) => {
-    await changeSource(value);
-    const temp = cloneDeep(deepConfig)
-    setDeepConfig(temp)
+    try {
+      setRenderLoading(true)
+      await changeSource(bitable, value);
+      const temp = cloneDeep(deepConfig)
+      setDeepConfig(temp)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setRenderLoading(false)
+    }
   }
 
   // 修改数据范围
   const onChangeRange = async (value) => {
-    await getAllFields(value);
+    await getAllFields(bitable, value);
     const temp = cloneDeep(deepConfig)
     setDeepConfig(temp)
   }
@@ -292,8 +321,12 @@ const App = forwardRef((props, ref) => {
 
   // 确定添加
   const handleSure = async () => {
+    if (!dashboard) {
+      return ;
+    }
     const dataConditions = {
       tableId: deepConfig.data_sorce,
+      baseToken,
     }
 
     deepConfig.all_fields = deepConfig.all_fields.map(d => {
@@ -326,6 +359,9 @@ const App = forwardRef((props, ref) => {
   }, [deepConfig.show_fields, allFields]);
 
   const getActualType = async (col) => {
+    if (!bitable) {
+      return col.type
+    }
     if (col.type === 19) {
       const lookupFieldId = col.property.refFieldId
       const quoteTableId = col.property.refTableId
@@ -377,6 +413,17 @@ const App = forwardRef((props, ref) => {
     <div className="right-box">
       <Banner fullMode={false} type="warning" closeIcon={null} description={bannerTips} />
       <Form ref={formRef} style={{overflow: "auto", height: "100%"}}>
+        {
+          bitableContext?.needChangeBase && 
+          <Form.Slot
+            field="data_sorce"
+          >
+            <BaseSelector
+              baseToken={baseToken}
+              onChange={onChangeBase}
+            />
+          </Form.Slot>
+        }
         <Form.Select
           field="data_sorce"
           label={{ text: "数据源" }}

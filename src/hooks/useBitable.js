@@ -20,15 +20,18 @@ export const useBitableContext = () => {
     const bitable = await workspace.getBitable(baseToken);
     setBitable(bitable);
     setBaseToken(baseToken);
+    return bitable;
   }, []);
 
   const changeBase = useCallback(async (baseToken) => {
+    let bitable = null;
     try{
       setLoading(true);
-      await updateBitable(baseToken);
+      bitable = await updateBitable(baseToken);
     } finally {
       setLoading(false);
     }
+    return bitable
   }, [updateBitable]);
 
   useEffect(() => {
