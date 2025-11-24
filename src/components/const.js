@@ -2,6 +2,7 @@ import { Toast } from "@douyinfe/semi-ui";
 import { line_computed, scroll_computed } from '../utils/computed'
 import {cloneDeep} from "@douyinfe/semi-ui/lib/es/_utils";
 import {getCurrentState} from "../utils/common";
+import { ErrorType } from "./errors/hooks";
 
 let first_range_id = "";
 const state = getCurrentState();
@@ -25,7 +26,7 @@ export function getDataSource(bitable, fetchedConfig = null) {
       await changeSource(bitable, deepConfig.data_sorce);
       resolve(tableList);
     } catch (err) {
-      Toast.error("获取数据源失败");
+      // Toast.error("获取数据源失败");
       reject(err);
     }
   });
@@ -167,7 +168,7 @@ export async function changeSource(bitable, value, firstLoadFlag = false) {
     return Promise.resolve();
   }
   return new Promise(async (resolve, reject) => {
-    const { deepConfig, setDeepConfig, formRef, setDataRange } = commonInfo;
+    const { deepConfig, setDeepConfig, formRef, setDataRange, setError } = commonInfo;
     deepConfig.data_sorce = value;
     if (state === 'Create') {
       formRef.current.formApi.setValue("data_range", "all");
@@ -178,8 +179,15 @@ export async function changeSource(bitable, value, firstLoadFlag = false) {
       setDeepConfig(deepConfig);
     }
     if (!value) return;
+    let table = null
+    try{
+      table = await bitable.base.getTable(value)
+    } catch (err) {
+      setError(ErrorType.NOT_FOUND)
+      reject(err);
+    }
+
     try {
-      const table = await bitable.base.getTable(value);
       const tables = await table.getViewMetaList();
       first_range_id = tables[0].id;
       if (state === 'Config' || state === 'Create') {
@@ -188,10 +196,13 @@ export async function changeSource(bitable, value, firstLoadFlag = false) {
       await getAllFields(bitable, "all", firstLoadFlag);
       resolve()
     } catch (err) {
-      Toast.error("获取数据范围失败");
+      // Toast.error("获取数据范围失败");
+      setError(ErrorType.NO_PERMISSION)
       reject()
       console.log(err);
+      return ;
     }
+    setError(null);
   })
 }
 

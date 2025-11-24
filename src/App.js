@@ -7,6 +7,8 @@ import {commonInfo, getDataSource} from "./components/const";
 import ConfigContext from "./components/ConfigContext";
 import { useBitableContext } from "./hooks";
 import { getCurrentState } from "./utils/common";
+import { useErrorComponent, ErrorType } from "./components/errors/hooks";
+
 
 
 function App() {
@@ -30,10 +32,16 @@ function App() {
     return res;
   }
 
+  const {
+    setError,
+    component: errorComponent,
+  } = useErrorComponent();
+
   const [themeConfig, setThemeConfig] = useState();
 
   commonInfo.appRef = appRef
   commonInfo.setRenderLoading = setRenderLoading;
+  commonInfo.setError = setError;
 
 
 
@@ -149,11 +157,11 @@ function App() {
   return (
     <div id="app-box" ref={appRef} style={{ background: currentTheme?.chartBgColor }}>
       <ConfigContext.Provider value={{deepConfig, setDeepConfig, appHeight, setAppHeight, mainTheme, setMainTheme, currentTheme, setCurrentTheme}}>
-        <Left
+        {errorComponent ? errorComponent : <Left
           deepConfig={deepConfig}
           bitableContext={bitableContext}
           loading={renderLoading}
-        />
+        />}
       </ConfigContext.Provider>
       { state === 'Config' || state === 'Create'
         ? (

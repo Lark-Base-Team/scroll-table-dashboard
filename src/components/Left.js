@@ -364,11 +364,15 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
     scrollTimer = null
     rowIndex = 0
     scrollPanel.current.scrollTop = rowIndex * rowHeight
-
+    
     if (deepConfig.scroll_method === 'line') {
       const length = tableLength || tableDatas.length
       if (!scrollTimer) {
         scrollTimer = setInterval(() => {
+          if(!scrollPanel.current) {
+            clearInterval(scrollTimer)
+            return ;
+          }
           if (rowIndex >= length) {
             rowIndex = 0
             scrollPanel.current.style.scrollBehavior = ''
@@ -387,6 +391,10 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
       const length = tableLength || tableDatas.length
       if (!scrollTimer) {
         scrollTimer = setInterval(() => {
+          if(!scrollPanel.current) {
+            clearInterval(scrollTimer)
+            return ;
+          }
           if (rowIndex >= length) {
             rowIndex = 0
             scrollPanel.current.style.scrollBehavior = ''
@@ -412,6 +420,16 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
 
   return (
     <div id="scroll-table-container">
+      <button onClick={() => {
+        bitable.ui.showToast({
+          message: `测试toast`,
+          toastType: 'info',
+        });
+        bitable.ui.showRecordDetailDialog({
+          "tableId": "tbl0rscTVS1j3TiB",
+          "recordId": "recFYZDsHt"
+        })
+      }}>弹出ui</button>
       <Table
         id="scroll-table-header"
         style={{whiteSpace: "nowrap", textOverflow: "ellipsis" }}
