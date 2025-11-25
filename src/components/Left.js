@@ -420,16 +420,6 @@ const VirtualizedFixedDemo = forwardRef((props, ref) => {
 
   return (
     <div id="scroll-table-container">
-      <button onClick={() => {
-        bitable.ui.showToast({
-          message: `测试toast`,
-          toastType: 'info',
-        });
-        bitable.ui.showRecordDetailDialog({
-          "tableId": "tbl0rscTVS1j3TiB",
-          "recordId": "recFYZDsHt"
-        })
-      }}>弹出ui</button>
       <Table
         id="scroll-table-header"
         style={{whiteSpace: "nowrap", textOverflow: "ellipsis" }}
