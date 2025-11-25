@@ -1,10 +1,10 @@
-import noPermissionIllustration from '../../assets/illustration_empty-neutral-no-access.svg'
+import { NoPermissionIllustration as NoPermissionIllustrationComp } from '../../assets/'
 import './index.scss';
 
 export const NoPermissionIllustration = () => {
   return (
     <div className="empty">
-      <img className="illustration" src={noPermissionIllustration} />
+      <NoPermissionIllustrationComp />
       <div className="text">无权限查看组件</div>
     </div>
   );
