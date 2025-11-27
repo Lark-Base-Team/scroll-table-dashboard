@@ -20,7 +20,11 @@ function App() {
   const [mainTheme, setMainTheme] = useState('LIGHT')
   const [currentTheme, setCurrentTheme] = useState();
   const [inited, setInited] = useState(false);
-  const bitableContext = useBitableContext();
+  const {
+    setError,
+    component: errorComponent,
+  } = useErrorComponent();
+  const bitableContext = useBitableContext({setError});
   const [renderLoading, setRenderLoading] = useState(false);
   const {
     bitable,
@@ -32,10 +36,6 @@ function App() {
     return res;
   }
 
-  const {
-    setError,
-    component: errorComponent,
-  } = useErrorComponent();
 
   const [themeConfig, setThemeConfig] = useState();
 
