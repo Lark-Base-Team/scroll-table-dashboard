@@ -110,7 +110,7 @@ function App() {
       setDataSource(res)
       setAllFields(config ? config.all_fields : deepConfig.all_fields)
     });
-  }, [inited, bitable])
+  }, [bitable])
 
   useEffect(() => {
     setAllFields(deepConfig.all_fields)
